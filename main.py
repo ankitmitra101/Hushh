@@ -11,7 +11,7 @@ load_dotenv()  # Explicitly load the .env file
 # IMPORT BOTH AGENTS
 from agent_core.logic import ShoppingAgent
 from agent_core.fashion_logic import FashionStylistAgent
-
+from fastapi.middleware.cors import CORSMiddleware
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     os.makedirs("data", exist_ok=True)
@@ -31,7 +31,13 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="Hushh Power Agent Platform", lifespan=lifespan)
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Allows your Streamlit app to connect
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 class AgentRequest(BaseModel):
     user_id: str
     message: str

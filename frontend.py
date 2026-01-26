@@ -1,9 +1,13 @@
 import streamlit as st
 import requests
 import json
+import os
+import streamlit as st
 
-# Your Render/Local URL
-API_URL = "http://127.0.0.1:8000/agents/run" 
+# It will look for a RENDER_URL first; if not found, it uses the local one
+API_BASE_URL = os.getenv("BACKEND_URL", "https://hushh-backend-uc5w.onrender.com")
+API_URL = f"{API_BASE_URL}/agents/run"
+
 
 st.set_page_config(page_title="PSC Agent Console", layout="wide")
 
