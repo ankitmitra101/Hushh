@@ -302,8 +302,8 @@ DARK_CSS = """
 
 st.markdown(DARK_CSS, unsafe_allow_html=True)
 
-# FIXED API CONFIGURATION
-API_BASE_URL = os.getenv("BACKEND_URL", "https://hushh-backend-uc5w.onrender.com").strip()
+# FIXED API CONFIGURATION - Removed trailing space and added rstrip
+API_BASE_URL = os.getenv("BACKEND_URL", "https://hushh-backend-uc5w.onrender.com").strip().rstrip('/')
 API_URL = f"{API_BASE_URL}/agents/run"
 
 # --- DATA MANAGEMENT ---
@@ -377,19 +377,24 @@ def call_ai_agent(user_message: str):
         }
         
         # DEBUG: Show what we're sending
-        st.session_state.last_request = payload
+        st.session_state.debug_info = f"Connecting to: {API_URL}"
         
+        # INCREASED TIMEOUT for Render free tier cold start (60s)
         response = requests.post(
             API_URL,
             json=payload,
-            timeout=30,
+            timeout=60,  # Changed from 30 to 60
             headers={"Content-Type": "application/json"}
         )
         response.raise_for_status()
         return response.json()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Backend connection failed: {e}")
-        return None
+        
+    except requests.exceptions.Timeout:
+        return {"error": "Backend is waking up (Render free tier). Please wait 30s and retry.", "agent": "error"}
+    except requests.exceptions.ConnectionError as e:
+        return {"error": f"Cannot reach backend. Is it running?", "agent": "error", "details": str(e)}
+    except Exception as e:
+        return {"error": f"Request failed: {str(e)}", "agent": "error"}
 
 # --- SESSION STATE ---
 defaults = {
@@ -401,7 +406,8 @@ defaults = {
     "thinking": False,
     "avoid_keywords": [],  # Will sync with backend
     "last_request": None,
-    "last_response": None
+    "last_response": None,
+    "debug_info": None
 }
 for key, val in defaults.items():
     if key not in st.session_state:
@@ -422,6 +428,32 @@ with st.sidebar:
         <p style="color: var(--text-muted); margin: 4px 0 0; font-size: 0.9rem;">@{USER_MEMORY['user_id']}</p>
     </div>
     """, unsafe_allow_html=True)
+    
+    # CONNECTION TEST PANEL - ADDED FOR DEBUGGING
+    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+    st.markdown("<h4 style='margin-top:0; color: var(--accent-orange); font-size: 0.9rem;'>🔌 CONNECTION TEST</h4>", unsafe_allow_html=True)
+    
+    # Show current URL being used
+    st.markdown(f"<div style='font-size: 0.7rem; color: var(--text-muted); word-break: break-all;'>{API_URL}</div>", unsafe_allow_html=True)
+    
+    if st.button("Test Backend", use_container_width=True):
+        with st.spinner("Checking..."):
+            try:
+                # Try to hit the health endpoint
+                health_url = API_BASE_URL + "/health"
+                r = requests.get(health_url, timeout=10)
+                if r.status_code == 200:
+                    st.success("✅ Backend is awake!")
+                else:
+                    st.error(f"⚠️ Status: {r.status_code}")
+            except Exception as e:
+                st.error(f"❌ {str(e)[:30]}...")
+    
+    # Show last debug info
+    if st.session_state.get("debug_info"):
+        st.markdown(f"<div style='font-size: 0.7rem; color: #666; margin-top: 8px;'>{st.session_state.debug_info}</div>", unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # RECENTLY AVOIDED SECTION - NOW DYNAMIC FROM BACKEND/STATE
     st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
@@ -575,7 +607,7 @@ with col1:
     
     # Input area
     if not st.session_state.thinking:
-        if prompt := st.chat_input("Tell me what you want (e.g., 'white sneakers under 2500, size 9, no chunky style')..."):
+        if prompt := st.chat_input("Tell me what you want (e.g., 'white sneakers under 2500, size 9, no chunky style')...")::
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.session_state.thinking = True
             st.rerun()
@@ -635,9 +667,14 @@ if st.session_state.thinking:
                 agent_type = result.get("agent", "")
                 
                 if "error" in result:
+                    # IMPROVED ERROR MESSAGE for Render backend
+                    error_msg = result['error']
+                    if "waking up" in error_msg.lower() or "connection" in error_msg.lower():
+                        error_msg += " Click 'Test Backend' in sidebar to wake it up."
+                    
                     st.session_state.messages.append({
                         "role": "assistant",
-                        "content": f"❌ Error: {result['error']}"
+                        "content": f"❌ {error_msg}"
                     })
                 elif "fashion" in agent_type:
                     # Fashion Stylist Agent response
@@ -688,9 +725,16 @@ if st.session_state.thinking:
                         
                         st.session_state.show_results = True
             else:
+                # More descriptive error
+                error_msg = "❌ Backend connection failed. "
+                if "render.com" in API_URL:
+                    error_msg += "Render backend may be sleeping. Click 'Test Backend' in sidebar to wake it up, then try again."
+                else:
+                    error_msg += "Check if backend is running on port 8000."
+                
                 st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": "❌ Failed to connect to AI backend. Please check connection."
+                    "role": "assistant", 
+                    "content": error_msg
                 })
         else:
             st.session_state.messages.append({
