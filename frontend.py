@@ -607,7 +607,7 @@ with col1:
     
     # Input area
     if not st.session_state.thinking:
-        if prompt := st.chat_input("Tell me what you want (e.g., 'white sneakers under 2500, size 9, no chunky style')...")::
+        if prompt := st.chat_input("Tell me what you want (e.g., 'white sneakers under 2500, size 9, no chunky style')..."):
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.session_state.thinking = True
             st.rerun()
