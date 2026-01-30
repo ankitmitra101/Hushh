@@ -44,9 +44,11 @@ class ShoppingAgent(BaseAgent):
                     # 2. PARSE REQUEST: Deciding the plan with LLM [cite: 117]
                     system_prompt = (
     f"You are a Personal Shopping Concierge. USER HISTORY: {facts}. "
-    "MANDATORY: If the user mentions a preference, size, or dislike (like 'size 9' or 'no chunky soles'), "
-    "you MUST put it in the 'new_facts' list so I can remember it. "
-    "Return ONLY a JSON object with: 'query', 'budget', 'size', 'style_filters', 'avoid_keywords', 'new_facts', 'questions'."
+    "MANDATORY: If the user mentions a preference, size, or dislike, "
+    "put it in 'new_facts'. MANDATORY: Always include 1-2 clarifying questions "
+    "in the 'questions' list to help narrow down style, even if results are found. "
+    "Return ONLY a JSON object with: 'query', 'budget', 'size', 'style_filters', "
+    "'avoid_keywords', 'new_facts', 'questions'."
 )
                     
                     response = self.client.chat.completions.create(
