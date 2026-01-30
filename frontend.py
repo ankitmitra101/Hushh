@@ -1,661 +1,866 @@
-# Write the Streamlit frontend file
-frontend_code = '''import streamlit as st
+import streamlit as st
 import requests
 import json
+import os
 import time
+import re
 from datetime import datetime
-import uuid
 
-# APPLE-ESQUE DARK THEME CONFIGURATION
+# Configuration & Theming
 st.set_page_config(
-    page_title="Hushh AI Concierge",
-    page_icon="🛍️",
+    page_title="Hushh | AI Concierge",
+    page_icon="◼",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# CUSTOM CSS - Professional Dark Apple Design
-st.markdown("""
+# Force dark theme CSS - Applied to ENTIRE page
+DARK_CSS = """
 <style>
-    /* Global Dark Theme with Apple-style gradients */
-    .stApp {
-        background: linear-gradient(180deg, #0d0d0d 0%, #1a1a1a 50%, #0f0f0f 100%);
-        color: #f5f5f7;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* Root variables for dark theme */
+    :root {
+        --bg-primary: #0a0a0f;
+        --bg-secondary: #151520;
+        --bg-card: #1a1a2e;
+        --bg-hover: #222236;
+        --accent-cyan: #00d4ff;
+        --accent-purple: #bb86fc;
+        --accent-pink: #ff006e;
+        --accent-green: #00f5d4;
+        --accent-orange: #fb5607;
+        --accent-red: #ff4757;
+        --text-primary: #ffffff;
+        --text-secondary: #a0a0b0;
+        --text-muted: #6c6c7d;
+        --border: #2a2a3e;
+        --border-hover: #3a3a50;
     }
     
-    /* Glassmorphism Header */
-    .glass-header {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 1.5rem 2rem;
-        margin: -1rem -1rem 2rem -1rem;
-        position: sticky;
-        top: 0;
-        z-index: 100;
+    /* Force dark background on ALL containers */
+    html, body, .stApp, [data-testid="stAppViewContainer"] {
+        background-color: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
     }
     
-    /* Apple-style Typography */
-    h1, h2, h3 {
-        font-weight: 600;
-        letter-spacing: -0.02em;
-        color: #f5f5f7;
+    /* Sidebar dark */
+    [data-testid="stSidebar"] {
+        background-color: var(--bg-secondary) !important;
+        border-right: 1px solid var(--border) !important;
     }
     
-    /* Chat Container */
-    .chat-container {
-        background: rgba(30, 30, 30, 0.4);
-        backdrop-filter: blur(30px);
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    [data-testid="stSidebarContent"] {
+        background-color: var(--bg-secondary) !important;
     }
     
-    /* Message Bubbles */
-    .user-message {
-        background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%);
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 20px 20px 6px 20px;
-        margin: 1rem 0 1rem auto;
-        max-width: 80%;
-        box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
-        animation: slideIn 0.3s ease-out;
-        font-size: 0.95rem;
-        line-height: 1.5;
+    /* Main content area */
+    .main .block-container {
+        background-color: var(--bg-primary) !important;
+        padding-top: 2rem;
+        max-width: 1400px;
     }
     
-    .agent-message {
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #f5f5f7;
-        padding: 1rem 1.5rem;
-        border-radius: 20px 20px 20px 6px;
-        margin: 1rem auto 1rem 0;
-        max-width: 80%;
-        animation: slideIn 0.3s ease-out;
-        font-size: 0.95rem;
-        line-height: 1.5;
+    /* Hide Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Typography */
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased;
     }
     
-    /* Product Cards - Glassmorphism */
-    .product-card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Glass Cards - Dark theme */
+    .glass-panel {
+        background: linear-gradient(145deg, rgba(26,26,46,0.9) 0%, rgba(21,21,32,0.9) 100%);
+        border: 1px solid var(--border);
         border-radius: 16px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .glass-panel:hover {
+        border-color: var(--border-hover);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    
+    /* Profile Section */
+    .profile-avatar {
+        width: 72px; height: 72px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-purple) 100%);
+        display: flex; align-items: center; justify-content: center;
+        color: #000; font-size: 28px; font-weight: 700;
+        margin: 0 auto 16px;
+        box-shadow: 0 0 20px rgba(0,212,255,0.3);
+    }
+    
+    /* Avoided/Dislikes Section - Red badges */
+    .avoid-badge {
+        display: inline-flex; align-items: center; padding: 6px 12px;
+        background: rgba(255,71,87,0.15); 
+        color: var(--accent-red);
+        border: 1px solid rgba(255,71,87,0.3);
+        border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+        margin: 4px; cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .avoid-badge:hover {
+        background: rgba(255,71,87,0.25);
+        transform: translateY(-1px);
+    }
+    
+    .avoid-badge .remove-icon {
+        margin-left: 6px;
+        opacity: 0.7;
+        font-weight: bold;
+    }
+    
+    /* Memory/Preference Chips */
+    .memory-chip {
+        display: inline-flex; align-items: center; padding: 6px 14px;
+        background: rgba(0,212,255,0.1); 
+        color: var(--accent-cyan);
+        border: 1px solid rgba(0,212,255,0.2);
+        border-radius: 100px; font-size: 0.8rem; font-weight: 500;
+        margin: 4px;
+    }
+    
+    .chip-brand {
+        background: rgba(187,134,252,0.1);
+        color: var(--accent-purple);
+        border-color: rgba(187,134,252,0.2);
+    }
+    
+    /* Chat Interface - Dark */
+    .chat-container {
+        background: var(--bg-secondary);
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        min-height: 500px;
+        padding: 24px;
+    }
+    
+    .message-bubble {
+        max-width: 80%; padding: 14px 20px; margin: 12px 0;
+        font-size: 0.95rem; line-height: 1.5;
+        animation: slideIn 0.3s ease;
         position: relative;
+    }
+    
+    .msg-user {
+        background: linear-gradient(135deg, var(--accent-cyan) 0%, #0099cc 100%);
+        color: #000;
+        border-radius: 20px 20px 4px 20px;
+        margin-left: auto;
+        font-weight: 500;
+        box-shadow: 0 4px 15px rgba(0,212,255,0.3);
+    }
+    
+    .msg-agent {
+        background: var(--bg-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+        border-radius: 20px 20px 20px 4px;
+        margin-right: auto;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* FIXED Question Card - Dark Blue/High Contrast */
+    .question-card {
+        background: linear-gradient(145deg, #1e3a5f 0%, #2d4a6f 100%);
+        border: 2px solid var(--accent-cyan);
+        border-radius: 16px;
+        padding: 28px;
+        margin: 20px 0;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,212,255,0.15);
+    }
+    
+    .question-text {
+        font-size: 1.2rem; font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .progress-indicator {
+        color: var(--accent-cyan);
+        font-size: 0.85rem;
+        margin-bottom: 16px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+    
+    /* Answer Buttons - Dark theme */
+    .answer-btn {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        padding: 12px 24px;
+        border-radius: 12px;
+        margin: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+    
+    .answer-btn:hover {
+        background: rgba(0,212,255,0.1);
+        border-color: var(--accent-cyan);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,212,255,0.2);
+    }
+    
+    /* Product Results */
+    .results-header {
+        background: linear-gradient(90deg, rgba(0,245,212,0.1) 0%, transparent 100%);
+        border-left: 4px solid var(--accent-green);
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .product-card {
+        background: var(--bg-card);
+        border-radius: 16px;
         overflow: hidden;
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
     }
     
     .product-card:hover {
         transform: translateY(-4px);
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(255, 255, 255, 0.2);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        border-color: var(--accent-cyan);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     }
     
-    .product-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    .product-image {
+        width: 100%; height: 180px;
+        background: linear-gradient(135deg, #252538 0%, #1e1e2d 100%);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 64px;
+        position: relative;
+        border-bottom: 1px solid var(--border);
     }
     
-    /* Constraints Display */
-    .constraint-pill {
-        display: inline-flex;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.1);
-        padding: 0.5rem 1rem;
+    .match-badge {
+        position: absolute; top: 12px; right: 12px;
+        background: rgba(0,0,0,0.8);
+        color: var(--accent-green);
+        padding: 6px 12px;
         border-radius: 20px;
-        margin: 0.25rem;
+        font-size: 0.8rem; font-weight: 700;
+        border: 1px solid var(--accent-green);
+    }
+    
+    .product-info { padding: 20px; }
+    
+    .product-title {
+        font-size: 1.1rem; font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+    
+    .product-brand {
+        color: var(--accent-purple);
         font-size: 0.85rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
     }
     
-    .constraint-pill.negative {
-        background: rgba(255, 59, 48, 0.15);
-        border-color: rgba(255, 59, 48, 0.3);
-        color: #ff453a;
+    .product-price {
+        color: var(--accent-cyan);
+        font-size: 1.4rem; font-weight: 700;
     }
     
-    .constraint-pill.positive {
-        background: rgba(48, 209, 88, 0.15);
-        border-color: rgba(48, 209, 88, 0.3);
-        color: #30d158;
+    .product-tags {
+        display: flex; flex-wrap: wrap; gap: 6px;
+        margin-top: 12px;
     }
     
-    /* Question Chips */
-    .question-chip {
-        background: rgba(0, 122, 255, 0.15);
-        border: 1px solid rgba(0, 122, 255, 0.3);
-        color: #64d2ff;
-        padding: 0.75rem 1.25rem;
-        border-radius: 12px;
-        margin: 0.5rem 0.5rem 0.5rem 0;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: inline-block;
-        font-size: 0.9rem;
+    .tag {
+        padding: 4px 10px;
+        background: rgba(0,212,255,0.1);
+        color: var(--accent-cyan);
+        border-radius: 6px;
+        font-size: 0.75rem;
     }
     
-    .question-chip:hover {
-        background: rgba(0, 122, 255, 0.25);
-        transform: scale(1.02);
-    }
-    
-    /* Sidebar Profile */
-    .profile-section {
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    
-    .memory-fact {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 0.75rem;
-        border-radius: 10px;
-        margin: 0.5rem 0;
-        border-left: 3px solid #007AFF;
-        font-size: 0.9rem;
-    }
-    
-    /* Action Buttons */
-    .action-button {
-        background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 12px;
+    /* Status Pills */
+    .status-pill {
+        padding: 8px 16px;
+        border-radius: 100px;
+        font-size: 0.85rem;
         font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-        margin: 0.5rem 0.5rem 0 0;
-        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+        display: flex; align-items: center; gap: 8px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        margin-bottom: 8px;
     }
     
-    .action-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+    .status-filled {
+        border-color: var(--accent-green);
+        color: var(--accent-green);
+        background: rgba(0,245,212,0.1);
     }
     
-    /* Animations */
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .status-pending {
+        border-color: var(--accent-orange);
+        color: var(--accent-orange);
+        background: rgba(251,86,7,0.1);
     }
     
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+    /* Thinking Animation */
+    .thinking {
+        display: flex; align-items: center; gap: 12px;
+        padding: 16px 20px;
+        background: var(--bg-card);
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        width: fit-content;
+        margin: 12px 0;
     }
     
-    .typing-indicator {
-        display: inline-flex;
-        gap: 4px;
-        padding: 1rem 1.5rem;
-        background: rgba(255, 255, 255, 0.08);
-        border-radius: 20px;
-        margin: 1rem 0;
+    .thinking-text {
+        color: var(--accent-cyan);
+        font-weight: 500;
     }
     
-    .typing-dot {
-        width: 8px;
-        height: 8px;
-        background: #64d2ff;
+    .dot {
+        width: 8px; height: 8px;
+        background: var(--accent-cyan);
         border-radius: 50%;
-        animation: bounce 1.4s infinite ease-in-out;
+        animation: bounce 1.4s infinite ease-in-out both;
     }
-    
-    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
     
     @keyframes bounce {
         0%, 80%, 100% { transform: scale(0); }
         40% { transform: scale(1); }
     }
     
-    /* Scrollbar Styling */
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #444; }
     
-    ::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.02);
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 4px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
-    
-    /* Input Styling Override */
+    /* Input styling */
     .stTextInput > div > div > input {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
+        background: var(--bg-card) !important;
         color: white !important;
-        padding: 1rem !important;
-        font-size: 1rem !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 12px !important;
     }
     
-    .stTextInput > div > div > input:focus {
-        border-color: #007AFF !important;
-        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2) !important;
+    /* Fix Streamlit buttons */
+    .stButton > button {
+        background: var(--bg-card) !important;
+        color: white !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 8px !important;
     }
     
-    /* Trace ID Badge */
-    .trace-badge {
-        font-family: 'Courier New', monospace;
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.4);
-        background: rgba(255, 255, 255, 0.05);
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        display: inline-block;
-        margin-top: 0.5rem;
+    .stButton > button:hover {
+        border-color: var(--accent-cyan) !important;
+        box-shadow: 0 0 10px rgba(0,212,255,0.2) !important;
+    }
+    
+    /* Empty state text */
+    .empty-state {
+        color: var(--text-muted);
+        font-style: italic;
+        font-size: 0.9rem;
     }
 </style>
-""", unsafe_allow_html=True)
+"""
 
-# Initialize Session State
-if 'messages' not in st.session_state:
-    st.session_state.messages = []
-if 'user_id' not in st.session_state:
-    st.session_state.user_id = f"user_{str(uuid.uuid4())[:8]}"
-if 'memory' not in st.session_state:
-    st.session_state.memory = {}
-if 'awaiting_response' not in st.session_state:
-    st.session_state.awaiting_response = False
+st.markdown(DARK_CSS, unsafe_allow_html=True)
 
-def call_backend(message: str):
-    """Call the FastAPI backend"""
+API_BASE_URL = os.getenv("BACKEND_URL", "https://hushh-backend-uc5w.onrender.com")
+API_URL = f"{API_BASE_URL}/agents/run"
+
+REQUIRED_FIELDS = ["category", "budget"]
+
+# --- DYNAMIC DATA LOADING ---
+def load_catalog():
+    """Load catalog from data/catalog.json"""
     try:
-        response = requests.post(
-            "http://127.0.0.1:8000/agents/run",
-            json={"user_id": st.session_state.user_id, "message": message},
-            timeout=30
-        )
-        return response.json()
+        with open('data/catalog.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
     except Exception as e:
-        return {"error": str(e), "agent": "error", "trace_id": "error"}
+        st.error(f"Error loading catalog: {e}")
+        return []
 
-def render_constraints(constraints: dict):
-    """Render the understood constraints as Apple-style pills"""
-    html = "<div style='margin: 1rem 0;'>"
-    html += "<div style='font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-bottom: 0.5rem;'>UNDERSTOOD PREFERENCES</div>"
-    html += "<div>"
+def load_user_memory():
+    """Load user memory from data/memory.json"""
+    default_memory = {
+        "user_id": "ankit_01",
+        "name": "Ankit",
+        "preferences": [],
+        "avoid_keywords": [],  # Starts empty!
+        "brand_affinity": [],
+        "closet": []
+    }
     
-    # Budget
-    if constraints.get('budget_inr_max'):
-        html += f"<span class='constraint-pill positive'>💰 Budget: ₹{constraints['budget_inr_max']}</span>"
-    
-    # Size
-    if constraints.get('size'):
-        html += f"<span class='constraint-pill positive'>📏 Size: {constraints['size']}</span>"
-    
-    # Style keywords
-    if constraints.get('style_keywords'):
-        styles = constraints['style_keywords']
-        if isinstance(styles, list):
-            for style in styles:
-                html += f"<span class='constraint-pill positive'>✨ {style.title()}</span>"
-        else:
-            html += f"<span class='constraint-pill positive'>✨ {styles}</span>"
-    
-    # Avoid keywords (negative constraints)
-    if constraints.get('avoid_keywords'):
-        avoids = constraints['avoid_keywords']
-        if isinstance(avoids, list):
-            for avoid in avoids:
-                html += f"<span class='constraint-pill negative'>🚫 {avoid.title()}</span>"
-        else:
-            html += f"<span class='constraint-pill negative'>🚫 {avoids}</span>"
-    
-    html += "</div></div>"
-    return html
+    try:
+        if os.path.exists('data/memory.json'):
+            with open('data/memory.json', 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                # Find user or return default
+                if isinstance(data, list):
+                    for user in data:
+                        if user.get("user_id") == "ankit_01":
+                            return user
+                    return default_memory
+                elif isinstance(data, dict):
+                    return data
+        return default_memory
+    except Exception as e:
+        st.error(f"Error loading memory: {e}")
+        return default_memory
 
-def render_product_card(product: dict, avoid_keywords: list = None):
-    """Render a product recommendation card"""
-    if avoid_keywords is None:
-        avoid_keywords = []
+def save_user_memory(memory_data):
+    """Save user memory to data/memory.json"""
+    try:
+        os.makedirs('data', exist_ok=True)
+        existing_data = []
+        
+        # Load existing if present
+        if os.path.exists('data/memory.json'):
+            with open('data/memory.json', 'r', encoding='utf-8') as f:
+                try:
+                    existing_data = json.load(f)
+                    if not isinstance(existing_data, list):
+                        existing_data = [existing_data]
+                except:
+                    existing_data = []
+        
+        # Update or append
+        user_found = False
+        for i, user in enumerate(existing_data):
+            if user.get("user_id") == memory_data["user_id"]:
+                existing_data[i] = memory_data
+                user_found = True
+                break
+        
+        if not user_found:
+            existing_data.append(memory_data)
+        
+        with open('data/memory.json', 'w', encoding='utf-8') as f:
+            json.dump(existing_data, f, indent=2)
+            
+    except Exception as e:
+        st.error(f"Error saving memory: {e}")
+
+def extract_avoided_keywords(text):
+    """Extract what user wants to avoid"""
+    avoided = []
+    text_lower = text.lower()
     
-    pros = product.get('pros', [])
-    cons = product.get('cons', [])
-    match_score = product.get('match_score', 0.95)
+    # Patterns for avoidance
+    patterns = [
+        r'(?:no|avoid|hate|skip|without|not|don\'t\s+(?:like|want))\s+(?:any\s+)?(\w+)',
+        r'(?:no|avoid|hate|skip)\s+(?:any\s+)?(\w+\s+\w+)',  # Two words like "chunky shoes"
+    ]
     
-    # Calculate match color
-    match_color = "#30d158" if match_score > 0.9 else "#ff9500" if match_score > 0.7 else "#ff453a"
+    for pattern in patterns:
+        matches = re.findall(pattern, text_lower)
+        avoided.extend(matches)
     
-    html = f"""
-    <div class="product-card">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-            <div style="font-size: 1.1rem; font-weight: 600; color: #f5f5f7;">{product.get('title', 'Unknown Product')}</div>
-            <div style="background: {match_color}20; color: {match_color}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">
-                {int(match_score * 100)}% Match
-            </div>
-        </div>
+    # Clean up and remove duplicates
+    avoided = [a.strip() for a in avoided if len(a.strip()) > 2]
+    return list(set(avoided))
+
+def extract_entities(text):
+    """Smart entity extraction"""
+    entities = {}
+    text_lower = text.lower()
+    
+    # Category detection
+    categories = {
+        "footwear": ["shoes", "sneakers", "footwear", "kicks", "runners", "boots", "slip-on"],
+        "apparel": ["shirt", "t-shirt", "pants", "jeans", "clothes", "top", "bottom", "crewneck"],
+        "accessories": ["belt", "sunglasses", "watch", "accessories", "bag", "wallet", "eyewear"]
+    }
+    for cat, keywords in categories.items():
+        if any(kw in text_lower for kw in keywords):
+            entities["category"] = cat
+            break
+    
+    # Budget extraction
+    budget_patterns = [
+        r'(?:under|below|max|up to|less than)\s*(?:₹|rs\.?|inr)?\s*(\d{3,5})',
+        r'(?:₹|rs\.?|inr)\s*(\d{3,5})',
+        r'(\d{3,5})\s*(?:₹|rs\.?|inr)',
+    ]
+    for pattern in budget_patterns:
+        match = re.search(pattern, text_lower)
+        if match:
+            entities["budget"] = int(match.group(1))
+            break
+    
+    # Size extraction
+    size_match = re.search(r'\b(?:size\s*)?(\d+|s|m|l|xl)\b', text_lower)
+    if size_match:
+        entities["size"] = size_match.group(1).upper() if size_match.group(1) in ['s','m','l','xl'] else size_match.group(1)
+    
+    # Color extraction
+    colors = ["white", "black", "blue", "navy", "red", "brown", "beige", "olive", "indigo", "gold"]
+    for color in colors:
+        if color in text_lower:
+            entities["color"] = color
+            break
+    
+    return entities
+
+def get_missing_fields(collected):
+    return [field for field in REQUIRED_FIELDS if field not in collected]
+
+def generate_question(field):
+    questions = {
+        "category": "What are you looking for?",
+        "budget": "What's your budget?",
+        "size": "What size?",
+        "color": "Preferred color?"
+    }
+    return questions.get(field, f"Please specify {field}")
+
+def get_quick_options(field):
+    options = {
+        "category": ["Sneakers/Shoes", "Shirts/Tops", "Pants/Jeans", "Accessories"],
+        "budget": ["Under ₹1500", "₹1500-₹2500", "₹2500-₹3500", "No limit"],
+        "size": ["7", "8", "9", "10", "M", "L"],
+        "color": ["White", "Black", "Blue", "Any"]
+    }
+    return options.get(field, [])
+
+def parse_quick_option(field, option):
+    if field == "budget":
+        if "Under" in option:
+            return 1500
+        elif "No limit" in option:
+            return 100000
+        else:
+            nums = re.findall(r'\d+', option)
+            return int(nums[-1]) if nums else 5000
+    elif field == "category":
+        mapping = {
+            "Sneakers/Shoes": "footwear",
+            "Shirts/Tops": "apparel",
+            "Pants/Jeans": "apparel",
+            "Accessories": "accessories"
+        }
+        return mapping.get(option, "footwear")
+    return option.lower()
+
+def filter_products(catalog, collected, avoid_keywords):
+    """Smart filtering with avoid logic"""
+    results = []
+    
+    for product in catalog:
+        # Check if product has avoided keywords
+        has_avoided = False
+        product_keywords = [k.lower() for k in product.get("style_keywords", [])]
+        product_title = product.get("title", "").lower()
         
-        <div style="color: #64d2ff; font-size: 0.9rem; margin-bottom: 0.5rem;">{product.get('brand', 'Unknown Brand')}</div>
-        <div style="font-size: 1.3rem; font-weight: 700; color: #f5f5f7; margin-bottom: 1rem;">₹{product.get('price_inr', 'N/A')}</div>
+        for avoid in avoid_keywords:
+            avoid_lower = avoid.lower()
+            if avoid_lower in product_keywords or avoid_lower in product_title:
+                has_avoided = True
+                break
         
-        <div style="margin: 1rem 0; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 10px; font-size: 0.9rem; line-height: 1.5; color: rgba(255,255,255,0.8);">
-            {product.get('why_recommended', 'Recommended based on your preferences.')}
-        </div>
+        if has_avoided:
+            continue  # Skip this product
         
-        <div style="display: flex; gap: 1rem; font-size: 0.85rem;">
-            <div style="flex: 1;">
-                <div style="color: #30d158; margin-bottom: 0.25rem;">Pros</div>
-                {"".join([f"<div style='margin: 0.25rem 0;'>• {pro}</div>" for pro in pros])}
-            </div>
-            <div style="flex: 1;">
-                <div style="color: #ff453a; margin-bottom: 0.25rem;">Cons</div>
-                {"".join([f"<div style='margin: 0.25rem 0;'>• {con}</div>" for con in cons])}
-            </div>
-        </div>
+        # Calculate match score
+        score = 0
         
-        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: rgba(255,255,255,0.4);">
-            ID: {product.get('product_id', 'N/A')}
-        </div>
+        if collected.get("category") and product.get("category") == collected["category"]:
+            score += 40
+        
+        if "budget" in collected and product.get("price_inr", 99999) <= collected["budget"]:
+            score += 30
+        
+        if collected.get("size"):
+            if str(product.get("size")) == str(collected["size"]):
+                score += 15
+        
+        if collected.get("color"):
+            if any(collected["color"] in kw for kw in product.get("style_keywords", [])):
+                score += 10
+        
+        if score > 0:
+            product["match_score"] = min(score / 100, 0.99)
+            results.append(product)
+    
+    results.sort(key=lambda x: x["match_score"], reverse=True)
+    return results[:6]
+
+# --- SESSION STATE ---
+defaults = {
+    "messages": [],
+    "collected": {},
+    "current_question": None,
+    "show_results": False,
+    "products": [],
+    "thinking": False
+}
+for key, val in defaults.items():
+    if key not in st.session_state:
+        st.session_state[key] = val
+
+# Load data
+CATALOG = load_catalog()
+USER_MEMORY = load_user_memory()
+
+# --- SIDEBAR ---
+with st.sidebar:
+    st.markdown(f"""
+    <div style="text-align: center; padding: 20px 0;">
+        <div class="profile-avatar">{USER_MEMORY['name'][0]}</div>
+        <h2 style="margin: 0; font-size: 1.3rem; font-weight: 600; color: white;">{USER_MEMORY['name']}</h2>
+        <p style="color: var(--text-muted); margin: 4px 0 0; font-size: 0.9rem;">@{USER_MEMORY['user_id']}</p>
     </div>
-    """
-    return html
+    """, unsafe_allow_html=True)
+    
+    # RECENTLY AVOIDED SECTION
+    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+    st.markdown("""
+    <h4 style="margin-top:0; color: var(--accent-red); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        ⛔ Recently Avoided
+    </h4>
+    """, unsafe_allow_html=True)
+    
+    if USER_MEMORY.get("avoid_keywords"):
+        st.markdown("<p style='color: var(--text-muted); font-size: 0.8rem; margin-bottom: 12px;'>Click ✕ to remove filter</p>", unsafe_allow_html=True)
+        for avoid in USER_MEMORY["avoid_keywords"]:
+            if st.button(f"✕ {avoid}", key=f"remove_{avoid}"):
+                USER_MEMORY["avoid_keywords"].remove(avoid)
+                save_user_memory(USER_MEMORY)
+                st.rerun()
+    else:
+        st.markdown("""
+        <p class="empty-state">
+            No filters yet. Tell me things like<br/>
+            <span style="color: var(--accent-cyan);">"no chunky shoes"</span> or 
+            <span style="color: var(--accent-cyan);">"avoid neon"</span>
+        </p>
+        """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Session Status
+    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+    st.markdown("<h4 style='margin-top:0; color: var(--accent-cyan); font-size: 0.9rem;'>SESSION STATUS</h4>", unsafe_allow_html=True)
+    
+    for field in REQUIRED_FIELDS:
+        if field in st.session_state.collected:
+            val = st.session_state.collected[field]
+            display = f"₹{val}" if field == "budget" else val
+            st.markdown(f'<div class="status-pill status-filled">✓ <b>{field.title()}:</b> {display}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="status-pill status-pending">○ <b>{field.title()}</b> needed</div>', unsafe_allow_html=True)
+    
+    if st.session_state.collected.get("size"):
+        st.markdown(f'<div class="status-pill status-filled">✓ <b>Size:</b> {st.session_state.collected["size"]}</div>', unsafe_allow_html=True)
+    if st.session_state.collected.get("color"):
+        st.markdown(f'<div class="status-pill status-filled">✓ <b>Color:</b> {st.session_state.collected["color"]}</div>', unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# UI LAYOUT
-# Header with Glass Effect
+# --- MAIN INTERFACE ---
 st.markdown("""
-<div class="glass-header">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h1 style="margin: 0; font-size: 1.8rem; background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                🛍️ Hushh AI Concierge
-            </h1>
-            <div style="color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-top: 0.25rem;">
-                Personal Shopping Intelligence
-            </div>
-        </div>
-        <div style="text-align: right;">
-            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.4);">Session ID</div>
-            <div style="font-family: monospace; color: #64d2ff; font-size: 0.9rem;">{st.session_state.user_id}</div>
-        </div>
-    </div>
+<div style="text-align: center; margin-bottom: 40px;">
+    <h1 style="font-weight: 700; font-size: 2.2rem; margin-bottom: 8px; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        AI Shopping Concierge
+    </h1>
+    <p style="color: var(--text-muted); font-size: 1rem; margin: 0;">
+        I learn what you dislike. I ask only what's necessary.
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar - User Profile & Memory
-with st.sidebar:
-    st.markdown("""
-    <div style="padding: 1rem 0;">
-        <h2 style="font-size: 1.3rem; margin-bottom: 1.5rem;">👤 Your Profile</h2>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Persistent Memory Section
-    st.markdown("""
-    <div class="profile-section">
-        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
-            Saved Preferences
-        </div>
-    """, unsafe_allow_html=True)
-    
-    if st.session_state.memory.get('facts'):
-        for fact in st.session_state.memory['facts']:
-            st.markdown(f"<div class='memory-fact'>📝 {fact}</div>", unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div style="color: rgba(255,255,255,0.3); font-size: 0.9rem; font-style: italic; padding: 1rem 0;">
-            No preferences saved yet. Start chatting to build your profile.
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    # Shortlist Section
-    if st.session_state.memory.get('shortlist'):
-        st.markdown("""
-        <div class="profile-section">
-            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
-                Your Shortlist
-            </div>
-        """, unsafe_allow_html=True)
-        for item in st.session_state.memory['shortlist']:
-            st.markdown(f"""
-            <div style="background: rgba(0,122,255,0.1); border: 1px solid rgba(0,122,255,0.2); padding: 0.75rem; border-radius: 10px; margin: 0.5rem 0; font-size: 0.85rem;">
-                <div style="font-weight: 600;">{item.get('product_id', 'Item')}</div>
-                <div style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">{item.get('reason', '')}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-    
-    # Stats
-    st.markdown("""
-    <div class="profile-section">
-        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
-            Session Stats
-        </div>
-        <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
-            <span style="color: rgba(255,255,255,0.5);">Messages</span>
-            <span style="color: #64d2ff; font-weight: 600;">{}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
-            <span style="color: rgba(255,255,255,0.5);">Agent</span>
-            <span style="color: #30d158; font-weight: 600;">Active</span>
-        </div>
-    </div>
-    """.format(len(st.session_state.messages)), unsafe_allow_html=True)
+col1, col2 = st.columns([3, 1])
 
-# Main Chat Area
-chat_container = st.container()
-
-with chat_container:
-    # Display Chat History
-    for idx, msg in enumerate(st.session_state.messages):
-        if msg['role'] == 'user':
-            st.markdown(f"<div class='user-message'>{msg['content']}</div>", unsafe_allow_html=True)
-        else:
-            # Agent message with structured data
-            st.markdown(f"<div class='agent-message'>{msg['content']}</div>", unsafe_allow_html=True)
-            
-            # If this message has structured data, render it
-            if 'data' in msg:
-                data = msg['data']
-                
-                # Trace ID
-                if data.get('trace_id'):
-                    st.markdown(f"<div class='trace-badge'>🔍 Trace: {data['trace_id'][:8]}...</div>", unsafe_allow_html=True)
-                
-                # Constraints
-                if data.get('understood_request', {}).get('constraints'):
-                    st.markdown(
-                        render_constraints(data['understood_request']['constraints']), 
-                        unsafe_allow_html=True
-                    )
-                
-                # Clarifying Questions
-                if data.get('clarifying_questions'):
-                    st.markdown("<div style='margin: 1rem 0; font-size: 0.8rem; color: rgba(255,255,255,0.5);'>FOLLOW-UP QUESTIONS</div>", unsafe_allow_html=True)
-                    for q in data['clarifying_questions']:
-                        if st.button(f"💬 {q}", key=f"q_{idx}_{q[:20]}"):
-                            st.session_state.messages.append({"role": "user", "content": q})
-                            st.rerun()
-                
-                # Product Results
-                if data.get('results'):
-                    st.markdown("<div style='margin: 2rem 0 1rem 0; font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em;'>Recommendations</div>", unsafe_allow_html=True)
-                    
-                    avoid_keywords = data.get('understood_request', {}).get('constraints', {}).get('avoid_keywords', [])
-                    
-                    for product in data['results']:
-                        st.markdown(render_product_card(product, avoid_keywords), unsafe_allow_html=True)
-                
-                # Next Actions
-                if data.get('next_actions'):
-                    st.markdown("<div style='margin: 1.5rem 0 0.5rem 0; font-size: 0.8rem; color: rgba(255,255,255,0.5);'>SUGGESTED ACTIONS</div>", unsafe_allow_html=True)
-                    cols = st.columns(len(data['next_actions']))
-                    for i, action in enumerate(data['next_actions']):
-                        action_type = action.get('action', 'PROCEED')
-                        with cols[i]:
-                            if st.button(f"▶️ {action_type.replace('_', ' ').title()}", key=f"action_{idx}_{i}"):
-                                st.session_state.messages.append({"role": "user", "content": f"Execute {action_type}"})
-                                st.rerun()
-                
-                # Comparisons
-                if data.get('comparisons', {}).get('summary'):
-                    comp = data['comparisons']
-                    st.markdown(f"""
-                    <div style="background: rgba(255,255,255,0.03); border-left: 3px solid #bf5af2; padding: 1rem; margin: 1rem 0; border-radius: 0 10px 10px 0;">
-                        <div style="font-size: 0.8rem; color: #bf5af2; margin-bottom: 0.5rem;">ANALYSIS</div>
-                        <div style="font-size: 0.95rem; color: rgba(255,255,255,0.9); margin-bottom: 0.5rem;">{comp['summary']}</div>
-                        {"".join([f'<div style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin: 0.25rem 0;">• {t}</div>' for t in comp.get('tradeoffs', [])])}
+with col1:
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    
+    # Messages
+    for msg in st.session_state.messages:
+        bubble_class = "msg-user" if msg["role"] == "user" else "msg-agent"
+        st.markdown(f'<div class="message-bubble {bubble_class}">{msg["content"]}</div>', unsafe_allow_html=True)
+        
+        if msg.get("products"):
+            st.markdown('<div class="results-header"><h3 style="margin:0; color: var(--accent-green);">✓ Found these matches</h3></div>', unsafe_allow_html=True)
+            st.markdown('<div class="product-grid">', unsafe_allow_html=True)
+            for prod in msg["products"]:
+                tags_html = "".join([f'<span class="tag">{kw}</span>' for kw in prod.get("style_keywords", [])[:3]])
+                st.markdown(f"""
+                <div class="product-card">
+                    <div class="product-image">👟<div class="match-badge">{int(prod['match_score']*100)}% MATCH</div></div>
+                    <div class="product-info">
+                        <div class="product-brand">{prod['brand']}</div>
+                        <div class="product-title">{prod['title']}</div>
+                        <div class="product-tags">{tags_html}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+                            <span class="product-price">₹{prod['price_inr']}</span>
+                            <span style="color: var(--text-muted); font-size:0.8rem;">{prod.get('material', '')}</span>
+                        </div>
                     </div>
-                    """, unsafe_allow_html=True)
-
-    # Typing indicator
-    if st.session_state.awaiting_response:
+                </div>
+                """, unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Thinking
+    if st.session_state.thinking:
         st.markdown("""
-        <div class="typing-indicator">
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
+        <div class="thinking">
+            <span class="thinking-text">Finding best matches...</span>
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
         </div>
         """, unsafe_allow_html=True)
-
-# Input Area
-st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
-
-with st.container():
-    col1, col2 = st.columns([6, 1])
-    with col1:
-        user_input = st.text_input(
-            "", 
-            placeholder="Tell me what you're looking for... (e.g., 'I need white sneakers under ₹2500, size 9, no chunky soles')",
-            key="input",
-            label_visibility="collapsed"
-        )
-    with col2:
-        send_button = st.button("Send", use_container_width=True, type="primary")
-
-# Handle Input
-if send_button and user_input and not st.session_state.awaiting_response:
-    # Add user message
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    st.session_state.awaiting_response = True
-    st.rerun()
-
-if st.session_state.awaiting_response and st.session_state.messages[-1]['role'] == 'user':
-    # Get last user message
-    last_message = st.session_state.messages[-1]['content']
     
-    # Call backend
-    with st.spinner():
-        response = call_backend(last_message)
-    
-    # Extract content for display
-    if response.get('error'):
-        agent_content = f"❌ Error: {response['error']}"
-        response_data = {}
-    else:
-        # Build natural language response from structured data
-        agent_type = response.get('agent', 'concierge')
-        results_count = len(response.get('results', []))
+    # Question Card (FIXED - Dark blue, white text)
+    if st.session_state.current_question and not st.session_state.show_results:
+        field = st.session_state.current_question
+        q_text = generate_question(field)
+        options = get_quick_options(field)
+        progress = len([f for f in REQUIRED_FIELDS if f in st.session_state.collected])
         
-        if results_count > 0:
-            agent_content = f"Found {results_count} item{'s' if results_count > 1 else ''} matching your criteria. I've analyzed your preferences and filtered out items matching your avoid list."
-        else:
-            agent_content = "I couldn't find any items matching your specific criteria. Would you like me to adjust the filters or search for alternatives?"
+        st.markdown(f"""
+        <div class="question-card">
+            <div class="progress-indicator">Step {progress + 1} of {len(REQUIRED_FIELDS) + 1}</div>
+            <div class="question-text">{q_text}</div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        response_data = response
-        
-        # Update memory in sidebar
-        if response.get('understood_request', {}).get('constraints'):
-            constraints = response['understood_request']['constraints']
-            facts = []
-            if constraints.get('size'):
-                facts.append(f"Size: {constraints['size']}")
-            if constraints.get('budget_inr_max'):
-                facts.append(f"Budget: ₹{constraints['budget_inr_max']}")
-            if constraints.get('avoid_keywords'):
-                avoids = constraints['avoid_keywords']
-                if isinstance(avoids, list):
-                    facts.append(f"Dislikes: {', '.join(avoids)}")
-                else:
-                    facts.append(f"Dislikes: {avoids}")
-            st.session_state.memory['facts'] = list(set(st.session_state.memory.get('facts', []) + facts))
-        
-        if response.get('shortlist'):
-            st.session_state.memory['shortlist'] = response['shortlist']
+        cols = st.columns(min(len(options), 2))
+        for i, opt in enumerate(options):
+            with cols[i % 2]:
+                if st.button(opt, key=f"btn_{field}_{i}", use_container_width=True):
+                    val = parse_quick_option(field, opt)
+                    st.session_state.collected[field] = val
+                    st.session_state.messages.append({"role": "user", "content": opt})
+                    
+                    missing = get_missing_fields(st.session_state.collected)
+                    if missing:
+                        st.session_state.current_question = missing[0]
+                    else:
+                        st.session_state.current_question = None
+                        st.session_state.thinking = True
+                    st.rerun()
     
-    # Add agent message
-    st.session_state.messages.append({
-        "role": "assistant", 
-        "content": agent_content,
-        "data": response_data
-    })
+    st.markdown('</div>', unsafe_allow_html=True)
     
-    st.session_state.awaiting_response = False
-    st.rerun()
+    # Input
+    if not st.session_state.show_results and not st.session_state.current_question:
+        if prompt := st.chat_input("Tell me what you want (e.g., 'white sneakers no chunky style')..."):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            
+            # Extract what to avoid and add to memory
+            avoided = extract_avoided_keywords(prompt)
+            if avoided:
+                USER_MEMORY["avoid_keywords"].extend(avoided)
+                USER_MEMORY["avoid_keywords"] = list(set(USER_MEMORY["avoid_keywords"]))  # Deduplicate
+                save_user_memory(USER_MEMORY)
+                st.toast(f"Added to avoid list: {', '.join(avoided)}", icon="🚫")
+            
+            # Extract entities
+            extracted = extract_entities(prompt)
+            st.session_state.collected.update(extracted)
+            
+            missing = get_missing_fields(st.session_state.collected)
+            if missing:
+                st.session_state.current_question = missing[0]
+            else:
+                st.session_state.thinking = True
+            st.rerun()
+    
+    if st.session_state.show_results:
+        if st.button("🔄 Start New Search", use_container_width=True):
+            for key in defaults:
+                st.session_state[key] = defaults[key]
+            st.rerun()
 
-# Quick Suggestions
-if len(st.session_state.messages) == 0:
-    st.markdown("""
-    <div style="margin-top: 3rem; text-align: center; color: rgba(255,255,255,0.3);">
-        <div style="margin-bottom: 1rem; font-size: 0.9rem;">Try asking for:</div>
-    </div>
-    """, unsafe_allow_html=True)
+with col2:
+    st.markdown('<div class="glass-panel" style="height: 600px; overflow-y: auto;">', unsafe_allow_html=True)
+    st.markdown("<h4 style='margin-top:0; color: var(--accent-cyan);'>SYSTEM TRACE</h4>", unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns(3)
-    suggestions = [
-        "White sneakers under ₹2500, size 9, no chunky soles",
-        "Style advice for my navy shirt",
-        "Show me my shortlist"
+    steps = [
+        ("Catalog Loaded", len(CATALOG) > 0, f"{len(CATALOG)} items"),
+        ("Memory Active", True, f"{len(USER_MEMORY.get('avoid_keywords', []))} avoided"),
+        ("Intent Parsed", "category" in st.session_state.collected, "Category detected"),
+        ("Budget Set", "budget" in st.session_state.collected, "Price filter active"),
+        ("Results Ready", st.session_state.show_results, f"{len(st.session_state.products)} matches")
     ]
     
-    for i, (col, suggestion) in enumerate(zip([col1, col2, col3], suggestions)):
-        with col:
-            if st.button(suggestion, key=f"sugg_{i}", use_container_width=True):
-                st.session_state.messages.append({"role": "user", "content": suggestion})
-                st.session_state.awaiting_response = True
-                st.rerun()
-'''
+    for label, status, detail in steps:
+        color = "var(--accent-green)" if status else "var(--text-muted)"
+        icon = "✓" if status else "○"
+        st.markdown(f"""
+        <div style="padding: 10px; margin: 6px 0; background: var(--bg-card); border-radius: 8px; border-left: 3px solid {color};">
+            <div style="color: {color}; font-weight: 600;">{icon} {label}</div>
+            <div style="color: var(--text-muted); font-size: 0.8rem;">{detail}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
-with open('/mnt/kimi/output/frontend.py', 'w') as f:
-    f.write(frontend_code)
+# --- BACKEND CALL ---
+if st.session_state.thinking:
+    try:
+        time.sleep(0.5)
+        
+        # Local filter first (always works)
+        filtered = filter_products(CATALOG, st.session_state.collected, USER_MEMORY.get("avoid_keywords", []))
+        
+        # Try API if available
+        try:
+            resp = requests.post(API_URL, json={
+                "user_id": "ankit_01",
+                "message": str(st.session_state.collected),
+                "context": st.session_state.collected
+            }, timeout=5)
+            if resp.status_code == 200:
+                api_results = resp.json().get("results", [])
+                if api_results:
+                    filtered = api_results
+        except:
+            pass
+        
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": f"Found {len(filtered)} items. Filtered out items with: {', '.join(USER_MEMORY.get('avoid_keywords', ['none']))}",
+            "products": filtered
+        })
+        
+        st.session_state.products = filtered
+        st.session_state.thinking = False
+        st.session_state.show_results = True
+        
+    except Exception as e:
+        st.session_state.thinking = False
+        st.error(f"Error: {e}")
+    
+    st.rerun()
 
-print("✅ Created frontend.py with Apple-esque dark design")
-print("\n🎨 Features implemented:")
-print("  • Glassmorphism UI with backdrop blur effects")
-print("  • Real-time structured response parsing")
-print("  • Persistent user profile sidebar (memory & shortlist)")
-print("  • Interactive constraint pills (positive/negative)")
-print("  • Product cards with match scores and reasoning")
-print("  • Animated message bubbles")
-print("  • Dark gradient background (#0d0d0d to #1a1a1a)")
-print("  • Apple-style typography and spacing")
-print("\n🚀 To run:")
-print("   streamlit run frontend.py")
+st.markdown("""
+<div style="text-align: center; margin-top: 40px; color: var(--text-muted); font-size: 0.8rem;">
+    <p>Dynamic memory • Smart filtering • Minimal questioning</p>
+</div>
+""", unsafe_allow_html=True)
