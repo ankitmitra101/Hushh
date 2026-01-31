@@ -1,0 +1,25 @@
+/* App Layout Styles */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+
+.main-layout {
+  flex: 1;
+  display: flex;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .main-layout {
+    flex-direction: column;
+    padding: 16px;
+  }
+}

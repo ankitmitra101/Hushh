@@ -1,10 +1,134 @@
 [
   {
+    "product_id": "tee-001",
+    "title": "Essential White Crew Tee",
+    "price_inr": 999,
+    "brand": "DailyBase",
+    "style_keywords": [
+      "minimal",
+      "white",
+      "everyday"
+    ],
+    "category": "apparel",
+    "sub_category": "t-shirts",
+    "size": "M",
+    "material": "Cotton"
+  },
+  {
+    "product_id": "tee-002",
+    "title": "Washed Black Oversized Tee",
+    "price_inr": 1299,
+    "brand": "StreetVibe",
+    "style_keywords": [
+      "oversized",
+      "black",
+      "street"
+    ],
+    "category": "apparel",
+    "sub_category": "t-shirts",
+    "size": "L",
+    "material": "Cotton"
+  },
+  {
+    "product_id": "tee-003",
+    "title": "Muted Olive Pocket Tee",
+    "price_inr": 1100,
+    "brand": "UrbanLeaf",
+    "style_keywords": [
+      "casual",
+      "olive",
+      "utility"
+    ],
+    "category": "apparel",
+    "sub_category": "t-shirts",
+    "size": "M",
+    "material": "Organic Cotton"
+  },
+  {
+    "product_id": "tee-004",
+    "title": "Graphite Grey Performance Tee",
+    "price_inr": 1400,
+    "brand": "ActiveCore",
+    "style_keywords": [
+      "sporty",
+      "breathable",
+      "grey"
+    ],
+    "category": "apparel",
+    "sub_category": "t-shirts",
+    "size": "L",
+    "material": "Poly-Cotton Blend"
+  },
+  {
+    "product_id": "tee-005",
+    "title": "Navy Striped Relaxed Tee",
+    "price_inr": 1250,
+    "brand": "Coastline",
+    "style_keywords": [
+      "striped",
+      "navy",
+      "relaxed"
+    ],
+    "category": "apparel",
+    "sub_category": "t-shirts",
+    "size": "M",
+    "material": "Cotton Jersey"
+  },
+  {
+    "product_id": "tee-006",
+    "title": "Earth Brown Boxy Tee",
+    "price_inr": 1350,
+    "brand": "RawTone",
+    "style_keywords": [
+      "boxy",
+      "brown",
+      "modern"
+    ],
+    "category": "apparel",
+    "sub_category": "t-shirts",
+    "size": "L",
+    "material": "Heavyweight Cotton"
+  },
+  {
+    "product_id": "tee-007",
+    "title": "Soft Beige Summer Tee",
+    "price_inr": 1050,
+    "brand": "SummerBreeze",
+    "style_keywords": [
+      "light",
+      "beige",
+      "summer"
+    ],
+    "category": "apparel",
+    "sub_category": "t-shirts",
+    "size": "M",
+    "material": "Cotton"
+  },
+  {
+    "product_id": "tee-008",
+    "title": "Deep Maroon Classic Tee",
+    "price_inr": 1150,
+    "brand": "Heritage",
+    "style_keywords": [
+      "classic",
+      "maroon",
+      "timeless"
+    ],
+    "category": "apparel",
+    "sub_category": "t-shirts",
+    "size": "L",
+    "material": "Cotton"
+  },
+  {
     "product_id": "snkr-001",
     "title": "Minimalist White Sneaker",
     "price_inr": 2200,
     "brand": "StepClean",
-    "style_keywords": ["minimal", "white", "sleek"],
+    "style_keywords": [
+      "minimal",
+      "white",
+      "sleek"
+    ],
     "category": "footwear",
     "sub_category": "sneakers",
     "size": "9",
@@ -15,18 +139,206 @@
     "title": "Chunky White Max",
     "price_inr": 2400,
     "brand": "UrbanCloud",
-    "style_keywords": ["chunky", "white", "bold"],
+    "style_keywords": [
+      "chunky",
+      "white",
+      "bold"
+    ],
     "category": "footwear",
     "sub_category": "sneakers",
     "size": "9",
     "material": "Mesh"
   },
   {
+    "product_id": "snkr-009",
+    "title": "Minimalist White Sneaker Pro",
+    "price_inr": 2200,
+    "brand": "StepClean",
+    "style_keywords": [
+      "minimal",
+      "white",
+      "sleek"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "9",
+    "material": "Faux Leather"
+  },
+  {
+    "product_id": "snkr-010",
+    "title": "Chunky Urban Trainer",
+    "price_inr": 2600,
+    "brand": "UrbanCloud",
+    "style_keywords": [
+      "chunky",
+      "bold",
+      "street"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "9",
+    "material": "Mesh"
+  },
+  {
+    "product_id": "snkr-011",
+    "title": "All-Black Runner Pro",
+    "price_inr": 3400,
+    "brand": "ActiveCore",
+    "style_keywords": [
+      "running",
+      "black",
+      "breathable"
+    ],
+    "category": "footwear",
+    "sub_category": "running",
+    "size": "10",
+    "material": "Knit Mesh"
+  },
+  {
+    "product_id": "snkr-012",
+    "title": "Retro Court Sneaker",
+    "price_inr": 2900,
+    "brand": "Classics",
+    "style_keywords": [
+      "retro",
+      "court",
+      "white"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "8",
+    "material": "Leather"
+  },
+  {
+    "product_id": "snkr-013",
+    "title": "Eco Canvas Slip-On",
+    "price_inr": 1600,
+    "brand": "SummerBreeze",
+    "style_keywords": [
+      "eco-friendly",
+      "beige",
+      "casual"
+    ],
+    "category": "footwear",
+    "sub_category": "casual",
+    "size": "8",
+    "material": "Hemp Canvas"
+  },
+  {
+    "product_id": "snkr-014",
+    "title": "Grey Flex Knit Sneaker",
+    "price_inr": 3100,
+    "brand": "UrbanCloud",
+    "style_keywords": [
+      "flexible",
+      "grey",
+      "lightweight"
+    ],
+    "category": "footwear",
+    "sub_category": "running",
+    "size": "9",
+    "material": "Knit"
+  },
+  {
+    "product_id": "snkr-015",
+    "title": "Olive Trail Walker",
+    "price_inr": 3700,
+    "brand": "TrailForge",
+    "style_keywords": [
+      "outdoor",
+      "olive",
+      "durable"
+    ],
+    "category": "footwear",
+    "sub_category": "hiking",
+    "size": "10",
+    "material": "Synthetic Leather"
+  },
+  {
+    "product_id": "snkr-016",
+    "title": "Low-Top Everyday Sneaker",
+    "price_inr": 2100,
+    "brand": "DailyBase",
+    "style_keywords": [
+      "everyday",
+      "simple",
+      "white"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "9",
+    "material": "Canvas"
+  },
+  {
+    "product_id": "snkr-017",
+    "title": "Midnight Street Runner",
+    "price_inr": 3300,
+    "brand": "StreetVibe",
+    "style_keywords": [
+      "street",
+      "black",
+      "sporty"
+    ],
+    "category": "footwear",
+    "sub_category": "running",
+    "size": "10",
+    "material": "Mesh"
+  },
+  {
+    "product_id": "snkr-018",
+    "title": "Classic Brown Casual Shoe",
+    "price_inr": 2500,
+    "brand": "Heritage",
+    "style_keywords": [
+      "casual",
+      "brown",
+      "classic"
+    ],
+    "category": "footwear",
+    "sub_category": "casual",
+    "size": "9",
+    "material": "Leather"
+  },
+  {
+    "product_id": "snkr-019",
+    "title": "White & Gum Skate Sneaker",
+    "price_inr": 2800,
+    "brand": "UrbanDeck",
+    "style_keywords": [
+      "skate",
+      "white",
+      "gum-sole"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "8",
+    "material": "Suede"
+  },
+  {
+    "product_id": "snkr-020",
+    "title": "BreathLite Daily Runner",
+    "price_inr": 3000,
+    "brand": "ActiveCore",
+    "style_keywords": [
+      "daily",
+      "lightweight",
+      "comfort"
+    ],
+    "category": "footwear",
+    "sub_category": "running",
+    "size": "9",
+    "material": "Engineered Mesh"
+  },
+  {
     "product_id": "top-013",
     "title": "Essential Navy Crewneck",
     "price_inr": 1200,
     "brand": "DailyBase",
-    "style_keywords": ["minimal", "navy", "casual"],
+    "style_keywords": [
+      "minimal",
+      "navy",
+      "casual"
+    ],
     "category": "apparel",
     "sub_category": "t-shirts",
     "size": "M",
@@ -37,7 +349,11 @@
     "title": "Relaxed Fit Cargo Pants",
     "price_inr": 2800,
     "brand": "StreetVibe",
-    "style_keywords": ["utility", "olive", "loose"],
+    "style_keywords": [
+      "utility",
+      "olive",
+      "loose"
+    ],
     "category": "apparel",
     "sub_category": "pants",
     "size": "32",
@@ -48,29 +364,26 @@
     "title": "Classic Leather Belt",
     "price_inr": 1500,
     "brand": "Heritage",
-    "style_keywords": ["formal", "brown", "brass"],
+    "style_keywords": [
+      "formal",
+      "brown",
+      "brass"
+    ],
     "category": "accessories",
     "sub_category": "belts",
     "size": "Universal",
     "material": "Full Grain Leather"
   },
   {
-    "product_id": "snkr-016",
-    "title": "Midnight Runner",
-    "price_inr": 3500,
-    "brand": "UrbanCloud",
-    "style_keywords": ["sporty", "black", "breathable"],
-    "category": "footwear",
-    "sub_category": "running",
-    "size": "10",
-    "material": "Knit"
-  },
-  {
     "product_id": "top-017",
     "title": "Oxford Button-Down",
     "price_inr": 2100,
     "brand": "Classics",
-    "style_keywords": ["smart-casual", "light-blue", "structured"],
+    "style_keywords": [
+      "smart-casual",
+      "light-blue",
+      "structured"
+    ],
     "category": "apparel",
     "sub_category": "shirts",
     "size": "L",
@@ -81,7 +394,11 @@
     "title": "Dark Indigo Slim Jeans",
     "price_inr": 2600,
     "brand": "Heritage",
-    "style_keywords": ["classic", "denim", "indigo"],
+    "style_keywords": [
+      "classic",
+      "denim",
+      "indigo"
+    ],
     "category": "apparel",
     "sub_category": "jeans",
     "size": "34",
@@ -92,21 +409,142 @@
     "title": "Aviator Sunglasses",
     "price_inr": 1850,
     "brand": "SummerBreeze",
-    "style_keywords": ["sleek", "gold", "summer"],
+    "style_keywords": [
+      "sleek",
+      "gold",
+      "summer"
+    ],
     "category": "accessories",
     "sub_category": "eyewear",
     "size": "M",
     "material": "Metal"
   },
   {
-    "product_id": "snkr-020",
-    "title": "Eco-Canvas Slip-on",
-    "price_inr": 1600,
-    "brand": "SummerBreeze",
-    "style_keywords": ["eco-friendly", "beige", "simple"],
+    "product_id": "shoe-001",
+    "title": "Classic White Leather Sneakers",
+    "price_inr": 3499,
+    "brand": "UrbanStep",
+    "style_keywords": [
+      "minimal",
+      "white",
+      "casual",
+      "everyday"
+    ],
     "category": "footwear",
-    "sub_category": "casual",
+    "sub_category": "sneakers",
+    "size": "9",
+    "material": "Leather"
+  },
+  {
+    "product_id": "shoe-002",
+    "title": "Black Running Shoes",
+    "price_inr": 2999,
+    "brand": "ActiveCore",
+    "style_keywords": [
+      "sporty",
+      "black",
+      "running",
+      "breathable"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "10",
+    "material": "Mesh"
+  },
+  {
+    "product_id": "shoe-003",
+    "title": "Navy Blue Canvas Sneakers",
+    "price_inr": 1899,
+    "brand": "Coastline",
+    "style_keywords": [
+      "casual",
+      "navy",
+      "summer",
+      "light"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "9",
+    "material": "Canvas"
+  },
+  {
+    "product_id": "shoe-004",
+    "title": "Retro Grey Suede Sneakers",
+    "price_inr": 4299,
+    "brand": "Heritage",
+    "style_keywords": [
+      "retro",
+      "grey",
+      "suede",
+      "classic"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
     "size": "8",
-    "material": "Hemp Canvas"
+    "material": "Suede"
+  },
+  {
+    "product_id": "shoe-005",
+    "title": "Brown Leather Boots",
+    "price_inr": 5499,
+    "brand": "Rugged",
+    "style_keywords": [
+      "rugged",
+      "brown",
+      "leather",
+      "outdoor"
+    ],
+    "category": "footwear",
+    "sub_category": "boots",
+    "size": "10",
+    "material": "Leather"
+  },
+  {
+    "product_id": "shoe-006",
+    "title": "Chunky Platform Sneakers",
+    "price_inr": 3799,
+    "brand": "StreetVibe",
+    "style_keywords": [
+      "chunky",
+      "platform",
+      "trendy",
+      "white"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "7",
+    "material": "Synthetic"
+  },
+  {
+    "product_id": "shoe-007",
+    "title": "Minimalist Black Loafers",
+    "price_inr": 2599,
+    "brand": "Classics",
+    "style_keywords": [
+      "minimal",
+      "black",
+      "smart-casual",
+      "sleek"
+    ],
+    "category": "footwear",
+    "sub_category": "loafers",
+    "size": "9",
+    "material": "Leather"
+  },
+  {
+    "product_id": "shoe-008",
+    "title": "Red High-Top Sneakers",
+    "price_inr": 3299,
+    "brand": "StreetVibe",
+    "style_keywords": [
+      "bold",
+      "red",
+      "high-top",
+      "street"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "8",
+    "material": "Canvas"
   }
 ]

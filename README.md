@@ -1,46 +1,147 @@
-Hushh Power Agent MVP
-This is a multi-agent system built for the Hushh.AI assignment. It features a Personal Shopping Concierge that can find products, remember what you like, and even give you styling advice based on what is already in your closet.
+# Hushh - AI Shopping Concierge
 
-How it Works
-The system uses a main router that looks at your message and decides which agent to talk to.
+Your personal AI shopping assistant that remembers your preferences and helps you find the perfect products.
 
+![Hushh Landing Page](https://via.placeholder.com/800x400?text=Hushh+AI+Shopping+Concierge)
 
-Shopping Agent: Handles product searches, filters by budget and size, and avoids things you don't like.
+## Features
 
+- 🧠 **Smart Memory** - Remembers what you like and avoids what you don't
+- 🎯 **Personalized** - AI-curated results matching your style
+- 💬 **Natural Chat** - Just describe what you want in plain words
+- 🔍 **Intelligent Search** - Filters by size, material, brand, style
 
-Stylist Agent: Looks at your existing clothes to see if a new purchase would match your style.
+## Quick Start (Plug & Play)
 
+The easiest way to run **Hushh** locally, even from a zip file.
 
-MCP Server: This is the tool layer that actually talks to the data files to search for products or save your preferences.
+### Option 1: One-Click Script (Recommended)
 
-Key Features
-Real Memory: If you tell the agent you hate chunky soles, it saves that as a "fact." The next time you ask for shoes, it will automatically filter those out without you asking again.
+**Windows:**
+1. Double-click `run_locally.bat` inside the folder.
+2. It will automatically:
+   - Create a virtual environment & install Python dependencies.
+   - Install React frontend dependencies.
+   - Start both servers and open your browser to the app.
 
+**Mac / Linux:**
+1. Open terminal in the folder.
+2. Run: `bash run_locally.sh`
 
-Fuzzy Search: The search tool is smart enough to find "white sneakers" even if the title is slightly different.
+> **Note:** On first run, it will create a `.env` file. You may need to open it and add your `OPENAI_API_KEY` (Groq API Key) if the app doesn't respond.
 
+---
 
-Structured Output: Everything comes back in a clean JSON format so it can be easily used by a website or app interface.
+### Option 2: Manual Setup
 
-Resilience: If the product catalog file is missing or broken, the agent won't crash. It will just give you a polite message saying the data is currently offline.
+#### Backend
+```bash
+# Setup Env
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env       # Edit .env with your API key
 
-How to Add a New Agent in under 30 Minutes
-The code is modular, so adding a new specialized agent is easy:
+# Run
+uvicorn main:app --reload
+```
 
-Put a new JSON data file in the data folder.
+#### Frontend
+```bash
+cd hushh-react-frontend
+npm install
+cp .env.example .env
+npm run dev
+```
 
-Add a new tool in server.py to search that specific file.
+---
 
-Create a new agent class in the logic folder that inherits from the BaseAgent.
+## Deployment (Render/Vercel)
 
-Update the router in main.py to recognize when a user wants to use this new agent.
+This project is configured for easy deployment.
 
-Setup and Running
-Install the requirements: pip install -r requirements.txt
+**Backend (Render/Railway/Heroku):**
+- **Build Command:** `pip install -r requirements.txt`
+- **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- **Env Vars:** `OPENAI_API_KEY` (Required)
 
-Add your API key to the .env file.
+**Frontend (Vercel/Netlify):**
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Env Vars:** `VITE_BACKEND_URL` (Set to your deployed backend URL)
 
-Start the server: python main.py
+## Project Structure
 
-Send a request using curl:
-curl -X POST http://127.0.0.1:8000/agents/run -H "Content-Type: application/json" -d '{"user_id": "user1", "message": "I need white sneakers under 2500"}'
+```
+Hushh/
+├── main.py                    # FastAPI backend
+├── requirements.txt           # Python dependencies
+├── agent_core/                # AI Agent logic
+│   └── logic.py               # Shopping agent with sessions
+├── mcp_server/                # MCP Tools (search, memory)
+│   └── server.py
+├── data/                      # Product catalog
+│   └── catalog.json           # 28 sample products
+└── hushh-react-frontend/      # React Frontend
+    ├── src/
+    │   ├── App.jsx            # Main app
+    │   └── components/        # UI components
+    └── package.json
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/agents/run` | Send a shopping query |
+| POST | `/agents/clear` | Clear conversation history |
+| GET | `/agents/session/{id}` | Get session info |
+| GET | `/health` | Health check |
+
+---
+
+## Customization
+
+### Add Products
+
+Edit `data/catalog.json` to add your own products:
+
+```json
+{
+  "product_id": "your-001",
+  "title": "Product Name",
+  "price_inr": 1500,
+  "brand": "Your Brand",
+  "category": "footwear",
+  "sub_category": "sneakers",
+  "size": "9",
+  "material": "Leather",
+  "style_keywords": ["minimal", "white", "casual"]
+}
+```
+
+### Categories
+
+The system supports ANY category. Just set the `category` field:
+- `footwear`, `apparel`, `accessories` (built-in)
+- `toys`, `electronics`, `food`, `books` (or any custom category)
+
+---
+
+## Tech Stack
+
+- **Backend**: Python, FastAPI, Groq (Llama 3.3)
+- **Frontend**: React, Vite
+- **AI**: MCP (Model Context Protocol) for tool use
+
+---
+
+## License
+
+MIT
+
+---
+
+**Built with ❤️ using Hushh AI Platform**

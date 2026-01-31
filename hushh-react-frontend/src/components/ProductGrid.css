@@ -1,0 +1,167 @@
+.product-grid {
+ margin-top: 20px;
+ animation: gridFadeIn 0.5s ease;
+}
+
+@keyframes gridFadeIn {
+ from {
+  opacity: 0;
+ }
+
+ to {
+  opacity: 1;
+ }
+}
+
+.grid-header {
+ margin-bottom: 16px;
+}
+
+.grid-title {
+ font-size: 14px;
+ font-weight: 600;
+ color: var(--text-secondary);
+}
+
+.grid-items {
+ display: grid;
+ grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+ gap: 16px;
+}
+
+.product-card {
+ background: var(--bg-card);
+ border: 1px solid var(--border);
+ border-radius: 16px;
+ overflow: hidden;
+ transition: all 0.3s ease;
+ animation: cardSlideIn 0.5s ease backwards;
+}
+
+@keyframes cardSlideIn {
+ from {
+  opacity: 0;
+  transform: translateY(20px);
+ }
+
+ to {
+  opacity: 1;
+  transform: translateY(0);
+ }
+}
+
+.product-card:hover {
+ border-color: var(--accent);
+ transform: translateY(-4px);
+ box-shadow: 0 12px 40px var(--shadow);
+}
+
+.product-image {
+ height: 140px;
+ background: var(--bg-elevated);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ position: relative;
+}
+
+.product-icon {
+ font-size: 52px;
+ filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+ transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-icon {
+ transform: scale(1.1);
+}
+
+.match-badge {
+ position: absolute;
+ top: 12px;
+ right: 12px;
+ display: flex;
+ align-items: center;
+ gap: 4px;
+ padding: 6px 10px;
+ background: var(--success);
+ color: #000;
+ border-radius: 8px;
+ font-size: 12px;
+ font-weight: 700;
+}
+
+.product-info {
+ padding: 16px;
+}
+
+.product-brand {
+ font-size: 11px;
+ text-transform: uppercase;
+ letter-spacing: 0.08em;
+ color: var(--text-muted);
+ font-weight: 600;
+}
+
+.product-title {
+ font-size: 15px;
+ font-weight: 600;
+ margin: 6px 0 12px;
+ color: var(--text-primary);
+ line-height: 1.3;
+}
+
+.product-meta {
+ display: flex;
+ align-items: center;
+ gap: 12px;
+}
+
+.product-price {
+ font-size: 18px;
+ font-weight: 700;
+ color: var(--text-primary);
+}
+
+.product-size {
+ font-size: 12px;
+ padding: 4px 8px;
+ background: var(--bg-elevated);
+ border-radius: 6px;
+ color: var(--text-muted);
+}
+
+.product-action {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 8px;
+ width: 100%;
+ padding: 14px;
+ background: var(--bg-elevated);
+ border: none;
+ border-top: 1px solid var(--border);
+ color: var(--text-secondary);
+ font-size: 13px;
+ font-weight: 500;
+ cursor: pointer;
+ transition: all 0.2s ease;
+}
+
+.product-action:hover {
+ background: var(--accent);
+ color: var(--accent-contrast);
+}
+
+.product-action:hover svg {
+ transform: translateX(4px);
+}
+
+.product-action svg {
+ transition: transform 0.2s ease;
+}
+
+@media (max-width: 600px) {
+ .grid-items {
+  grid-template-columns: 1fr;
+ }
+}

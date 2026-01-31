@@ -1,0 +1,55 @@
+# Docker ignore file - excludes files from build context
+
+# Node modules
+node_modules/
+hushh-react-frontend/node_modules/
+
+# Build outputs
+dist/
+build/
+hushh-react-frontend/dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test
+coverage/
+.coverage
+htmlcov/
+
+# Documentation
+*.md
+!README.md
+
+# Streamlit (not needed in Docker)
+frontend.py
