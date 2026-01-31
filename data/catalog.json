@@ -1,10 +1,14 @@
-ee a few t shirts[
+[
   {
     "product_id": "tee-001",
     "title": "Essential White Crew Tee",
     "price_inr": 999,
     "brand": "DailyBase",
-    "style_keywords": ["minimal", "white", "everyday"],
+    "style_keywords": [
+      "minimal",
+      "white",
+      "everyday"
+    ],
     "category": "apparel",
     "sub_category": "t-shirts",
     "size": "M",
@@ -15,7 +19,11 @@ ee a few t shirts[
     "title": "Washed Black Oversized Tee",
     "price_inr": 1299,
     "brand": "StreetVibe",
-    "style_keywords": ["oversized", "black", "street"],
+    "style_keywords": [
+      "oversized",
+      "black",
+      "street"
+    ],
     "category": "apparel",
     "sub_category": "t-shirts",
     "size": "L",
@@ -26,7 +34,11 @@ ee a few t shirts[
     "title": "Muted Olive Pocket Tee",
     "price_inr": 1100,
     "brand": "UrbanLeaf",
-    "style_keywords": ["casual", "olive", "utility"],
+    "style_keywords": [
+      "casual",
+      "olive",
+      "utility"
+    ],
     "category": "apparel",
     "sub_category": "t-shirts",
     "size": "M",
@@ -37,7 +49,11 @@ ee a few t shirts[
     "title": "Graphite Grey Performance Tee",
     "price_inr": 1400,
     "brand": "ActiveCore",
-    "style_keywords": ["sporty", "breathable", "grey"],
+    "style_keywords": [
+      "sporty",
+      "breathable",
+      "grey"
+    ],
     "category": "apparel",
     "sub_category": "t-shirts",
     "size": "L",
@@ -48,7 +64,11 @@ ee a few t shirts[
     "title": "Navy Striped Relaxed Tee",
     "price_inr": 1250,
     "brand": "Coastline",
-    "style_keywords": ["striped", "navy", "relaxed"],
+    "style_keywords": [
+      "striped",
+      "navy",
+      "relaxed"
+    ],
     "category": "apparel",
     "sub_category": "t-shirts",
     "size": "M",
@@ -59,7 +79,11 @@ ee a few t shirts[
     "title": "Earth Brown Boxy Tee",
     "price_inr": 1350,
     "brand": "RawTone",
-    "style_keywords": ["boxy", "brown", "modern"],
+    "style_keywords": [
+      "boxy",
+      "brown",
+      "modern"
+    ],
     "category": "apparel",
     "sub_category": "t-shirts",
     "size": "L",
@@ -70,7 +94,11 @@ ee a few t shirts[
     "title": "Soft Beige Summer Tee",
     "price_inr": 1050,
     "brand": "SummerBreeze",
-    "style_keywords": ["light", "beige", "summer"],
+    "style_keywords": [
+      "light",
+      "beige",
+      "summer"
+    ],
     "category": "apparel",
     "sub_category": "t-shirts",
     "size": "M",
@@ -81,7 +109,11 @@ ee a few t shirts[
     "title": "Deep Maroon Classic Tee",
     "price_inr": 1150,
     "brand": "Heritage",
-    "style_keywords": ["classic", "maroon", "timeless"],
+    "style_keywords": [
+      "classic",
+      "maroon",
+      "timeless"
+    ],
     "category": "apparel",
     "sub_category": "t-shirts",
     "size": "L",
@@ -92,7 +124,11 @@ ee a few t shirts[
     "title": "Minimalist White Sneaker",
     "price_inr": 2200,
     "brand": "StepClean",
-    "style_keywords": ["minimal", "white", "sleek"],
+    "style_keywords": [
+      "minimal",
+      "white",
+      "sleek"
+    ],
     "category": "footwear",
     "sub_category": "sneakers",
     "size": "9",
@@ -103,7 +139,11 @@ ee a few t shirts[
     "title": "Chunky White Max",
     "price_inr": 2400,
     "brand": "UrbanCloud",
-    "style_keywords": ["chunky", "white", "bold"],
+    "style_keywords": [
+      "chunky",
+      "white",
+      "bold"
+    ],
     "category": "footwear",
     "sub_category": "sneakers",
     "size": "9",
@@ -114,7 +154,11 @@ ee a few t shirts[
     "title": "Minimalist White Sneaker Pro",
     "price_inr": 2200,
     "brand": "StepClean",
-    "style_keywords": ["minimal", "white", "sleek"],
+    "style_keywords": [
+      "minimal",
+      "white",
+      "sleek"
+    ],
     "category": "footwear",
     "sub_category": "sneakers",
     "size": "9",
@@ -125,7 +169,11 @@ ee a few t shirts[
     "title": "Chunky Urban Trainer",
     "price_inr": 2600,
     "brand": "UrbanCloud",
-    "style_keywords": ["chunky", "bold", "street"],
+    "style_keywords": [
+      "chunky",
+      "bold",
+      "street"
+    ],
     "category": "footwear",
     "sub_category": "sneakers",
     "size": "9",
@@ -136,7 +184,11 @@ ee a few t shirts[
     "title": "All-Black Runner Pro",
     "price_inr": 3400,
     "brand": "ActiveCore",
-    "style_keywords": ["running", "black", "breathable"],
+    "style_keywords": [
+      "running",
+      "black",
+      "breathable"
+    ],
     "category": "footwear",
     "sub_category": "running",
     "size": "10",
@@ -147,7 +199,11 @@ ee a few t shirts[
     "title": "Retro Court Sneaker",
     "price_inr": 2900,
     "brand": "Classics",
-    "style_keywords": ["retro", "court", "white"],
+    "style_keywords": [
+      "retro",
+      "court",
+      "white"
+    ],
     "category": "footwear",
     "sub_category": "sneakers",
     "size": "8",
@@ -158,7 +214,11 @@ ee a few t shirts[
     "title": "Eco Canvas Slip-On",
     "price_inr": 1600,
     "brand": "SummerBreeze",
-    "style_keywords": ["eco-friendly", "beige", "casual"],
+    "style_keywords": [
+      "eco-friendly",
+      "beige",
+      "casual"
+    ],
     "category": "footwear",
     "sub_category": "casual",
     "size": "8",
@@ -169,7 +229,11 @@ ee a few t shirts[
     "title": "Grey Flex Knit Sneaker",
     "price_inr": 3100,
     "brand": "UrbanCloud",
-    "style_keywords": ["flexible", "grey", "lightweight"],
+    "style_keywords": [
+      "flexible",
+      "grey",
+      "lightweight"
+    ],
     "category": "footwear",
     "sub_category": "running",
     "size": "9",
@@ -180,7 +244,11 @@ ee a few t shirts[
     "title": "Olive Trail Walker",
     "price_inr": 3700,
     "brand": "TrailForge",
-    "style_keywords": ["outdoor", "olive", "durable"],
+    "style_keywords": [
+      "outdoor",
+      "olive",
+      "durable"
+    ],
     "category": "footwear",
     "sub_category": "hiking",
     "size": "10",
@@ -191,7 +259,11 @@ ee a few t shirts[
     "title": "Low-Top Everyday Sneaker",
     "price_inr": 2100,
     "brand": "DailyBase",
-    "style_keywords": ["everyday", "simple", "white"],
+    "style_keywords": [
+      "everyday",
+      "simple",
+      "white"
+    ],
     "category": "footwear",
     "sub_category": "sneakers",
     "size": "9",
@@ -202,7 +274,11 @@ ee a few t shirts[
     "title": "Midnight Street Runner",
     "price_inr": 3300,
     "brand": "StreetVibe",
-    "style_keywords": ["street", "black", "sporty"],
+    "style_keywords": [
+      "street",
+      "black",
+      "sporty"
+    ],
     "category": "footwear",
     "sub_category": "running",
     "size": "10",
@@ -213,7 +289,11 @@ ee a few t shirts[
     "title": "Classic Brown Casual Shoe",
     "price_inr": 2500,
     "brand": "Heritage",
-    "style_keywords": ["casual", "brown", "classic"],
+    "style_keywords": [
+      "casual",
+      "brown",
+      "classic"
+    ],
     "category": "footwear",
     "sub_category": "casual",
     "size": "9",
@@ -224,7 +304,11 @@ ee a few t shirts[
     "title": "White & Gum Skate Sneaker",
     "price_inr": 2800,
     "brand": "UrbanDeck",
-    "style_keywords": ["skate", "white", "gum-sole"],
+    "style_keywords": [
+      "skate",
+      "white",
+      "gum-sole"
+    ],
     "category": "footwear",
     "sub_category": "sneakers",
     "size": "8",
@@ -235,7 +319,11 @@ ee a few t shirts[
     "title": "BreathLite Daily Runner",
     "price_inr": 3000,
     "brand": "ActiveCore",
-    "style_keywords": ["daily", "lightweight", "comfort"],
+    "style_keywords": [
+      "daily",
+      "lightweight",
+      "comfort"
+    ],
     "category": "footwear",
     "sub_category": "running",
     "size": "9",
@@ -246,7 +334,11 @@ ee a few t shirts[
     "title": "Essential Navy Crewneck",
     "price_inr": 1200,
     "brand": "DailyBase",
-    "style_keywords": ["minimal", "navy", "casual"],
+    "style_keywords": [
+      "minimal",
+      "navy",
+      "casual"
+    ],
     "category": "apparel",
     "sub_category": "t-shirts",
     "size": "M",
@@ -257,7 +349,11 @@ ee a few t shirts[
     "title": "Relaxed Fit Cargo Pants",
     "price_inr": 2800,
     "brand": "StreetVibe",
-    "style_keywords": ["utility", "olive", "loose"],
+    "style_keywords": [
+      "utility",
+      "olive",
+      "loose"
+    ],
     "category": "apparel",
     "sub_category": "pants",
     "size": "32",
@@ -268,7 +364,11 @@ ee a few t shirts[
     "title": "Classic Leather Belt",
     "price_inr": 1500,
     "brand": "Heritage",
-    "style_keywords": ["formal", "brown", "brass"],
+    "style_keywords": [
+      "formal",
+      "brown",
+      "brass"
+    ],
     "category": "accessories",
     "sub_category": "belts",
     "size": "Universal",
@@ -279,7 +379,11 @@ ee a few t shirts[
     "title": "Oxford Button-Down",
     "price_inr": 2100,
     "brand": "Classics",
-    "style_keywords": ["smart-casual", "light-blue", "structured"],
+    "style_keywords": [
+      "smart-casual",
+      "light-blue",
+      "structured"
+    ],
     "category": "apparel",
     "sub_category": "shirts",
     "size": "L",
@@ -290,7 +394,11 @@ ee a few t shirts[
     "title": "Dark Indigo Slim Jeans",
     "price_inr": 2600,
     "brand": "Heritage",
-    "style_keywords": ["classic", "denim", "indigo"],
+    "style_keywords": [
+      "classic",
+      "denim",
+      "indigo"
+    ],
     "category": "apparel",
     "sub_category": "jeans",
     "size": "34",
@@ -301,7 +409,11 @@ ee a few t shirts[
     "title": "Aviator Sunglasses",
     "price_inr": 1850,
     "brand": "SummerBreeze",
-    "style_keywords": ["sleek", "gold", "summer"],
+    "style_keywords": [
+      "sleek",
+      "gold",
+      "summer"
+    ],
     "category": "accessories",
     "sub_category": "eyewear",
     "size": "M",

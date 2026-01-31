@@ -95,6 +95,7 @@ class ShoppingAgent(BaseAgent):
                     search_query = brain.get("query") or message
                     budget = brain.get("budget", 10000)  # Higher default budget
                     category = brain.get("category", None)
+                    size = brain.get("size", None)  # Extract size from AI
                     
                     # Normalize category with synonyms
                     category = self._normalize_category(category, message)
@@ -104,13 +105,14 @@ class ShoppingAgent(BaseAgent):
                     if isinstance(avoid, str):
                         avoid = avoid.split()
                     
-                    print(f"[DEBUG] Searching - Query: {search_query}, Category: {category}, Avoid: {avoid}", file=sys.stderr)
+                    print(f"[DEBUG] Searching - Query: {search_query}, Category: {category}, Size: {size}, Avoid: {avoid}", file=sys.stderr)
 
                     search_res = await session.call_tool("search_products", arguments={
                         "query": search_query, 
                         "budget_max": budget,
                         "avoid_keywords": avoid,
-                        "category": category
+                        "category": category,
+                        "size": size  # Pass size to search
                     })
                     
                     products = self._parse_mcp_content(search_res)
