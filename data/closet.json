@@ -1,6 +1,1 @@
-{
-  "ankit_01": [
-    {"item_id": "jean-01", "type": "jeans", "color": "dark indigo", "style": "slim"},
-    {"item_id": "shirt-02", "type": "t-shirt", "color": "grey", "style": "oversized"}
-  ]
-}
+{"test_user": [{"product_id": "snkr-001", "title": "White Sneakers", "color": "white", "type": "footwear"}, {"product_id": "jean-001", "title": "Blue Jeans", "color": "blue", "type": "apparel"}]}

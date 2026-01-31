@@ -8,9 +8,12 @@ from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 load_dotenv()
-print(f"DEBUG: OPENAI_API_KEY loaded: {bool(os.getenv('OPENAI_API_KEY'))}")
-if os.getenv('OPENAI_API_KEY'):
-    print(f"DEBUG: Key starts with: {os.getenv('OPENAI_API_KEY')[:10]}...")
+groq_key = os.getenv("GROQ_API_KEY")
+openai_key = os.getenv("OPENAI_API_KEY")
+print(f"DEBUG: GROQ_API_KEY loaded: {bool(groq_key)}")
+if groq_key:
+    print(f"DEBUG: Groq Key starts with: {groq_key[:10]}...")
+print(f"DEBUG: OPENAI_API_KEY loaded: {bool(openai_key)}")
 
 from agent_core.logic import ShoppingAgent
 from agent_core.fashion_logic import FashionStylistAgent
