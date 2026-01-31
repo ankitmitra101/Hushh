@@ -1,46 +1,196 @@
-Hushh Power Agent MVP
-This is a multi-agent system built for the Hushh.AI assignment. It features a Personal Shopping Concierge that can find products, remember what you like, and even give you styling advice based on what is already in your closet.
+# Hushh - AI Shopping Concierge
 
-How it Works
-The system uses a main router that looks at your message and decides which agent to talk to.
+Your personal AI shopping assistant that remembers your preferences and helps you find the perfect products.
 
+![Hushh Landing Page](https://via.placeholder.com/800x400?text=Hushh+AI+Shopping+Concierge)
 
-Shopping Agent: Handles product searches, filters by budget and size, and avoids things you don't like.
+## Features
 
+- 🧠 **Smart Memory** - Remembers what you like and avoids what you don't
+- 🎯 **Personalized** - AI-curated results matching your style
+- 💬 **Natural Chat** - Just describe what you want in plain words
+- 🔍 **Intelligent Search** - Filters by size, material, brand, style
 
-Stylist Agent: Looks at your existing clothes to see if a new purchase would match your style.
+## Quick Start (Download → Deploy in 10 minutes)
 
+### Prerequisites
 
-MCP Server: This is the tool layer that actually talks to the data files to search for products or save your preferences.
+1. **Groq API Key** (Free) - Get one at [console.groq.com](https://console.groq.com)
+2. **Render Account** (Free) - Sign up at [render.com](https://render.com)
+3. **GitHub Account** - To push your code
 
-Key Features
-Real Memory: If you tell the agent you hate chunky soles, it saves that as a "fact." The next time you ask for shoes, it will automatically filter those out without you asking again.
+### Step 1: Push to Your GitHub
 
+```bash
+# Unzip the downloaded file
+cd Hushh
 
-Fuzzy Search: The search tool is smart enough to find "white sneakers" even if the title is slightly different.
+# Initialize new repo (if not already a git repo)
+git init
+git add .
+git commit -m "Initial commit"
 
+# Create a new repo on GitHub, then:
+git remote add origin https://github.com/YOUR_USERNAME/Hushh.git
+git push -u origin main
+```
 
-Structured Output: Everything comes back in a clean JSON format so it can be easily used by a website or app interface.
+### Step 2: Deploy Backend on Render
 
-Resilience: If the product catalog file is missing or broken, the agent won't crash. It will just give you a polite message saying the data is currently offline.
+1. Go to [render.com](https://render.com) → **New** → **Web Service**
+2. Connect your GitHub repo
+3. Configure:
+   - **Name**: `hushh-backend`
+   - **Runtime**: Python 3
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4. Add Environment Variable:
+   - **Key**: `OPENAI_API_KEY`
+   - **Value**: Your Groq API key
+5. Click **Create Web Service**
+6. Wait for deployment → Note your backend URL (e.g., `https://hushh-backend-xyz.onrender.com`)
 
-How to Add a New Agent in under 30 Minutes
-The code is modular, so adding a new specialized agent is easy:
+### Step 3: Deploy Frontend on Render
 
-Put a new JSON data file in the data folder.
+1. Go to [render.com](https://render.com) → **New** → **Static Site**
+2. Connect the same GitHub repo
+3. Configure:
+   - **Name**: `hushh-frontend`
+   - **Root Directory**: `hushh-react-frontend`
+   - **Build Command**: `npm install && npm run build`
+   - **Publish Directory**: `dist`
+4. Add Environment Variable:
+   - **Key**: `VITE_BACKEND_URL`
+   - **Value**: Your backend URL from Step 2
+5. Click **Create Static Site**
 
-Add a new tool in server.py to search that specific file.
+### Done! 🎉
 
-Create a new agent class in the logic folder that inherits from the BaseAgent.
+Your app is live at your Render frontend URL!
 
-Update the router in main.py to recognize when a user wants to use this new agent.
+---
 
-Setup and Running
-Install the requirements: pip install -r requirements.txt
+## Local Development
 
-Add your API key to the .env file.
+### Backend
 
-Start the server: python main.py
+```bash
+cd Hushh
 
-Send a request using curl:
-curl -X POST http://127.0.0.1:8000/agents/run -H "Content-Type: application/json" -d '{"user_id": "user1", "message": "I need white sneakers under 2500"}'
+# Create .env file
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY (Groq key)
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run
+uvicorn main:app --reload
+```
+
+### Frontend
+
+```bash
+cd hushh-react-frontend
+
+# Install dependencies
+npm install
+
+# Run
+npm run dev
+```
+
+---
+
+## Environment Variables
+
+### Backend (.env)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OPENAI_API_KEY` | ✅ Yes | Your Groq API key (used via OpenAI client) |
+| `PORT` | No | Server port (default: 8000) |
+
+### Frontend
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_BACKEND_URL` | ✅ Yes | Your backend URL (e.g., `https://hushh-backend.onrender.com`) |
+
+---
+
+## Project Structure
+
+```
+Hushh/
+├── main.py                    # FastAPI backend
+├── requirements.txt           # Python dependencies
+├── agent_core/                # AI Agent logic
+│   └── logic.py               # Shopping agent with sessions
+├── mcp_server/                # MCP Tools (search, memory)
+│   └── server.py
+├── data/                      # Product catalog
+│   └── catalog.json           # 28 sample products
+└── hushh-react-frontend/      # React Frontend
+    ├── src/
+    │   ├── App.jsx            # Main app
+    │   └── components/        # UI components
+    └── package.json
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/agents/run` | Send a shopping query |
+| POST | `/agents/clear` | Clear conversation history |
+| GET | `/agents/session/{id}` | Get session info |
+| GET | `/health` | Health check |
+
+---
+
+## Customization
+
+### Add Products
+
+Edit `data/catalog.json` to add your own products:
+
+```json
+{
+  "product_id": "your-001",
+  "title": "Product Name",
+  "price_inr": 1500,
+  "brand": "Your Brand",
+  "category": "footwear",
+  "sub_category": "sneakers",
+  "size": "9",
+  "material": "Leather",
+  "style_keywords": ["minimal", "white", "casual"]
+}
+```
+
+### Categories
+
+The system supports ANY category. Just set the `category` field:
+- `footwear`, `apparel`, `accessories` (built-in)
+- `toys`, `electronics`, `food`, `books` (or any custom category)
+
+---
+
+## Tech Stack
+
+- **Backend**: Python, FastAPI, Groq (Llama 3.3)
+- **Frontend**: React, Vite
+- **AI**: MCP (Model Context Protocol) for tool use
+
+---
+
+## License
+
+MIT
+
+---
+
+**Built with ❤️ using Hushh AI Platform**
