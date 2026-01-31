@@ -10,10 +10,15 @@ import './App.css'
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://hushh-backend-uc5w.onrender.com'
 const API_URL = `${BACKEND_URL}/agents/run`
 const HEALTH_URL = `${BACKEND_URL}/health`
+const CLEAR_URL = `${BACKEND_URL}/agents/clear`
+
+// Generate a unique session ID
+const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
 function AppContent() {
-  const [currentPage, setCurrentPage] = useState('landing') // 'landing' or 'chat'
+  const [currentPage, setCurrentPage] = useState('landing')
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [sessionId, setSessionId] = useState(generateSessionId())
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -50,11 +55,25 @@ function AppContent() {
     setCurrentPage('chat')
   }
 
-  const handleBackToLanding = () => {
+  const handleBackToLanding = async () => {
+    // Clear conversation on backend before going back
+    try {
+      await fetch(CLEAR_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId })
+      })
+    } catch (e) {
+      console.log('Could not clear conversation on backend')
+    }
+
+    // Reset all state and generate new session
     setCurrentPage('landing')
     setMessages([])
     setSessionData({})
+    setAvoidKeywords([])
     setSelectedCategory(null)
+    setSessionId(generateSessionId())  // New session for next chat
   }
 
   const sendMessage = async () => {
@@ -71,7 +90,8 @@ function AppContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: 'ankit_01',
-          message: userMessage
+          message: userMessage,
+          session_id: sessionId  // Send session ID for conversation tracking
         })
       })
 
@@ -131,9 +151,23 @@ function AppContent() {
     setAvoidKeywords(prev => prev.filter(k => k !== keyword))
   }
 
-  const clearChat = () => {
+  const clearChat = async () => {
+    // Clear on backend
+    try {
+      await fetch(CLEAR_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId })
+      })
+    } catch (e) {
+      console.log('Could not clear conversation on backend')
+    }
+
+    // Clear frontend state but keep same session
     setMessages([])
     setSessionData({})
+    setAvoidKeywords([])
+    setSessionId(generateSessionId())  // New session
   }
 
   // Show Landing Page

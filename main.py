@@ -7,11 +7,12 @@ from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-load_dotenv()  # Explicitly load the .env file
-# IMPORT BOTH AGENTS
+load_dotenv()
+
 from agent_core.logic import ShoppingAgent
 from agent_core.fashion_logic import FashionStylistAgent
 from fastapi.middleware.cors import CORSMiddleware
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     os.makedirs("data", exist_ok=True)
@@ -32,25 +33,22 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Hushh Power Agent Platform", lifespan=lifespan)
 
-# CORS configuration - allow frontend origins
-allowed_origins = [
-    "http://localhost:5173",          # Vite dev server
-    "http://localhost:8501",          # Streamlit
-    "http://localhost:3000",          # Alternative dev port
-    "https://*.vercel.app",           # Vercel deployments
-    "*"                               # Fallback for development
-]
-
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for now (can restrict later)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 class AgentRequest(BaseModel):
     user_id: str
     message: str
+    session_id: str = None  # Optional session ID for conversation tracking
+
+class ClearConversationRequest(BaseModel):
+    session_id: str
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
@@ -64,26 +62,25 @@ async def add_process_time_header(request: Request, call_next):
 async def run_agent(request: AgentRequest):
     try:
         msg = request.message.lower()
+        session_id = request.session_id or request.user_id  # Use session_id if provided
         
-        # 1. INTENT ROUTER
+        # Intent routing
         if any(word in msg for word in ["style", "match", "wear with", "advice", "look"]):
             print(f"--- ROUTING TO: FashionStylistAgent ---")
             agent = FashionStylistAgent(user_id=request.user_id)
+            response = await agent.process_request(request.message)
         else:
-            print(f"--- ROUTING TO: ShoppingAgent ---")
-            agent = ShoppingAgent(user_id=request.user_id)
+            print(f"--- ROUTING TO: ShoppingAgent (session: {session_id}) ---")
+            agent = ShoppingAgent(user_id=request.user_id, session_id=session_id)
+            response = await agent.process_request(request.message)
         
-        # 2. ASYNC EXECUTION
-        response = await agent.process_request(request.message)
         return response
 
-    # --- CRITICAL FIX: Handling TaskGroup Sub-Exceptions ---
     except ExceptionGroup as eg:
         print("\n" + "!"*60)
         print("DIAGNOSTIC: UNPACKING TASKGROUP ERRORS")
         for i, error in enumerate(eg.exceptions):
             print(f"\n[SUB-ERROR {i+1}]:")
-            # This prints the actual traceback of the inner error
             traceback.print_exception(type(error), error, error.__traceback__)
         print("!"*60 + "\n")
         
@@ -97,6 +94,26 @@ async def run_agent(request: AgentRequest):
             status_code=500, 
             detail={"error": "General Agent failure", "trace": str(e)}
         )
+
+@app.post("/agents/clear")
+async def clear_conversation(request: ClearConversationRequest):
+    """Clear conversation history for a session - used when starting a new chat."""
+    success = ShoppingAgent.clear_conversation(request.session_id)
+    return {
+        "success": success,
+        "message": "Conversation cleared" if success else "No conversation found for this session",
+        "session_id": request.session_id
+    }
+
+@app.get("/agents/session/{session_id}")
+async def get_session_info(session_id: str):
+    """Get info about a conversation session."""
+    count = ShoppingAgent.get_conversation_count(session_id)
+    return {
+        "session_id": session_id,
+        "message_count": count,
+        "has_history": count > 0
+    }
 
 @app.get("/health")
 async def health_check():

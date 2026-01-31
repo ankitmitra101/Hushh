@@ -12,22 +12,38 @@ from agent_core.base import BaseAgent
 load_dotenv()
 
 class ShoppingAgent(BaseAgent):
-    # Class-level conversation history per user
+    # Class-level conversation history per user session
     _conversations = {}
     
-    def __init__(self, user_id):
+    def __init__(self, user_id: str, session_id: str = None):
         super().__init__(user_id)
+        self.session_id = session_id or user_id  # Use session_id if provided
+        
         # Using Groq for high-speed, free-tier reasoning
         self.client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY"),
             base_url="https://api.groq.com/openai/v1"
         )
-        # Initialize conversation history for this user if not exists
-        if user_id not in ShoppingAgent._conversations:
-            ShoppingAgent._conversations[user_id] = []
+        # Initialize conversation history for this session if not exists
+        if self.session_id not in ShoppingAgent._conversations:
+            ShoppingAgent._conversations[self.session_id] = []
+
+    @classmethod
+    def clear_conversation(cls, session_id: str):
+        """Clear conversation history for a specific session."""
+        if session_id in cls._conversations:
+            del cls._conversations[session_id]
+            return True
+        return False
+
+    @classmethod
+    def get_conversation_count(cls, session_id: str):
+        """Get number of messages in a session."""
+        return len(cls._conversations.get(session_id, []))
 
     async def process_request(self, message: str):
         print(f"[TRACE {self.trace_id}] THOUGHT: Initiating PSC end-to-end loop.")
+        print(f"[DEBUG] Session: {self.session_id}, History count: {len(ShoppingAgent._conversations.get(self.session_id, []))}", file=sys.stderr)
         
         base_path = os.getcwd()
         server_script = os.path.abspath(os.path.join(base_path, "mcp_server", "server.py"))
@@ -47,32 +63,21 @@ class ShoppingAgent(BaseAgent):
                     user_mem = self._parse_mcp_content(user_mem_res)
                     facts = user_mem.get("facts", [])
 
-                    # 2. PARSE REQUEST: Improved prompt for category and negative keyword extraction
-                    system_prompt = (
-                        f"You are a Personal Shopping Concierge. USER HISTORY: {facts}. "
-                        "MANDATORY: Extract the CATEGORY from the query. "
-                        "CRITICAL CATEGORY RULES: "
-                        "- Use 'apparel' for ANY clothing: shirts, t-shirts, tees, pants, jeans, tops "
-                        "- Use 'footwear' for shoes, sneakers, runners, boots "
-                        "- Use 'accessories' for belts, bags, sunglasses, watches "
-                        "MANDATORY: If the user mentions a preference, size, or dislike, put it in 'new_facts'. "
-                        "MANDATORY: Always include 1-2 clarifying questions. "
-                        "CRITICAL: If a user dislikes something or says 'avoid X' or 'no X', extract the core "
-                        "descriptor word (e.g., 'chunky', 'flashy', 'bold') and put it in 'avoid_keywords' as a LIST. "
-                        "Return ONLY a JSON object with: 'query', 'category', 'budget', 'size', 'style_filters', "
-                        "'avoid_keywords', 'new_facts', 'questions'."
-                    )
+                    # 2. PARSE REQUEST: Improved prompt for category extraction
+                    system_prompt = self._build_system_prompt(facts)
                     
-                    # Build messages with conversation history
-                    conversation = ShoppingAgent._conversations[self.user_id]
+                    # Build messages with conversation history for THIS session
+                    conversation = ShoppingAgent._conversations.get(self.session_id, [])
                     messages = [{"role": "system", "content": system_prompt}]
                     
-                    # Add last 5 conversation turns for context
+                    # Add conversation history (last 10 messages for context)
                     for turn in conversation[-10:]:
                         messages.append(turn)
                     
                     # Add current user message
                     messages.append({"role": "user", "content": message})
+                    
+                    print(f"[DEBUG] Sending {len(messages)} messages to LLM", file=sys.stderr)
                     
                     response = self.client.chat.completions.create(
                         model="llama-3.3-70b-versatile",
@@ -82,16 +87,19 @@ class ShoppingAgent(BaseAgent):
                     brain = json.loads(response.choices[0].message.content)
                     print(f"[DEBUG] AI Brain: {json.dumps(brain)}", file=sys.stderr)
                     
-                    # Save conversation turn
-                    ShoppingAgent._conversations[self.user_id].append({"role": "user", "content": message})
-                    ShoppingAgent._conversations[self.user_id].append({"role": "assistant", "content": response.choices[0].message.content})
+                    # Save conversation turn for this session
+                    ShoppingAgent._conversations[self.session_id].append({"role": "user", "content": message})
+                    ShoppingAgent._conversations[self.session_id].append({"role": "assistant", "content": response.choices[0].message.content})
 
                     # 3. SEARCH PRODUCTS: Call tool with filters
-                    search_query = brain.get("query") or "sneaker"
-                    budget = brain.get("budget", 2500)
-                    category = brain.get("category", None)  # Extract category for filtering
+                    search_query = brain.get("query") or message
+                    budget = brain.get("budget", 10000)  # Higher default budget
+                    category = brain.get("category", None)
                     
-                    # Standardize avoid list to ensure it works with server.py logic
+                    # Normalize category with synonyms
+                    category = self._normalize_category(category, message)
+                    
+                    # Standardize avoid list
                     avoid = brain.get("avoid_keywords", [])
                     if isinstance(avoid, str):
                         avoid = avoid.split()
@@ -112,7 +120,7 @@ class ShoppingAgent(BaseAgent):
                     # 4. GET DETAILS: Hydrate results with full metadata
                     final_results = []
                     if products:
-                        for p in products[:6]: # Limit candidates to top 6
+                        for p in products[:6]:
                             pid = p.get("product_id")
                             if pid:
                                 detail_res = await session.call_tool("get_product_details", arguments={"product_id": pid})
@@ -128,12 +136,73 @@ class ShoppingAgent(BaseAgent):
                         await session.call_tool("write_memory", arguments={"user_id": self.user_id, "facts": new_facts})
                     
                     # 7. RETURN STRUCTURED JSON
-                    return self._format_ui_response(brain, final_results)
+                    return self._format_ui_response(brain, final_results, category)
 
         except Exception as e:
             print(f"[TRACE {self.trace_id}] ERROR:")
             traceback.print_exc(file=sys.stderr)
             return {"agent": "personal_shopping_concierge", "trace_id": self.trace_id, "error": str(e), "results": []}
+
+    def _build_system_prompt(self, facts):
+        """Build the system prompt with category rules."""
+        return (
+            f"You are a Personal Shopping Concierge helping users find products. "
+            f"USER HISTORY: {facts}. "
+            "Your task is to understand what the user wants and extract search parameters. "
+            "\n\nCATEGORY EXTRACTION RULES (CRITICAL):\n"
+            "- 'footwear' = shoes, sneakers, runners, boots, sandals, flip-flops, heels, loafers\n"
+            "- 'apparel' = clothing, t-shirts, tees, shirts, pants, jeans, tops, dresses, jackets, hoodies, sweaters\n"
+            "- 'accessories' = belts, bags, sunglasses, watches, caps, hats, wallets, jewelry\n"
+            "\nSYNONYM MATCHING:\n"
+            "- If user says 'clothes' or 'clothing' → category = 'apparel'\n"
+            "- If user says 'shoes' → category = 'footwear'\n"
+            "\nEXTRACT PREFERENCES:\n"
+            "- If user mentions avoid/no/don't like, put descriptors in 'avoid_keywords'\n"
+            "- Extract budget if mentioned (in INR)\n"
+            "- Extract size if mentioned\n"
+            "\nReturn ONLY a JSON object with these fields:\n"
+            "{\n"
+            '  "query": "search terms",\n'
+            '  "category": "footwear|apparel|accessories",\n'
+            '  "budget": number or null,\n'
+            '  "size": "size string or null",\n'
+            '  "avoid_keywords": ["word1", "word2"],\n'
+            '  "new_facts": ["any new preferences to remember"],\n'
+            '  "questions": ["optional clarifying questions"]\n'
+            "}"
+        )
+
+    def _normalize_category(self, category, message):
+        """Normalize category based on synonyms in the message."""
+        message_lower = message.lower()
+        
+        # If AI extracted a category, use it
+        if category:
+            category = category.lower()
+            # Map synonyms
+            if category in ["clothes", "clothing", "shirt", "shirts", "t-shirt", "t-shirts", "tee", "tees", "pants", "jeans"]:
+                return "apparel"
+            if category in ["shoes", "shoe", "sneakers", "sneaker", "boots", "sandals"]:
+                return "footwear"
+            if category in ["footwear", "apparel", "accessories"]:
+                return category
+        
+        # Fallback: detect from message
+        footwear_words = ["shoe", "shoes", "sneaker", "sneakers", "boot", "boots", "sandal", "sandals", "runner", "runners"]
+        apparel_words = ["shirt", "shirts", "t-shirt", "t-shirts", "tee", "tees", "pant", "pants", "jeans", "jacket", "hoodie", "dress", "top", "tops", "clothes", "clothing"]
+        accessory_words = ["belt", "belts", "bag", "bags", "sunglasses", "watch", "watches", "cap", "caps", "hat", "hats"]
+        
+        for word in footwear_words:
+            if word in message_lower:
+                return "footwear"
+        for word in apparel_words:
+            if word in message_lower:
+                return "apparel"
+        for word in accessory_words:
+            if word in message_lower:
+                return "accessories"
+        
+        return category  # Return whatever was extracted
 
     def _parse_mcp_content(self, response):
         """Standardizes tool output parsing."""
@@ -145,8 +214,8 @@ class ShoppingAgent(BaseAgent):
         except Exception: 
             return {}
 
-    def _format_ui_response(self, brain, results):
-        """Eliminates all hardcoded strings using dynamic catalog data."""
+    def _format_ui_response(self, brain, results, normalized_category):
+        """Format response for frontend UI."""
         avoided_str = ", ".join(brain.get("avoid_keywords", [])) if brain.get("avoid_keywords") else "unwanted styles"
         size_label = brain.get("size", "your size")
 
@@ -155,13 +224,13 @@ class ShoppingAgent(BaseAgent):
             "trace_id": self.trace_id,
             "clarifying_questions": brain.get("questions", []),
             "understood_request": {
-                "category": brain.get("category", "unknown"),  # USE ACTUAL EXTRACTED CATEGORY
+                "category": normalized_category or brain.get("category", "unknown"),
                 "constraints": {
-                    "budget_inr_max": brain.get("budget", 2500),
+                    "budget_inr_max": brain.get("budget", 10000),
                     "size": size_label,
                     "style_keywords": brain.get("style_filters", []),
                     "avoid_keywords": brain.get("avoid_keywords", []),
-                    "category": brain.get("category", "unknown")  # Also include in constraints
+                    "category": normalized_category or brain.get("category", "unknown")
                 }
             },
             "results": [
@@ -170,19 +239,15 @@ class ShoppingAgent(BaseAgent):
                     "title": r.get("title"), 
                     "price_inr": r.get("price_inr"), 
                     "brand": r.get("brand", "Unknown"),
+                    "category": r.get("category", "unknown"),
                     "match_score": 0.95, 
                     "pros": [f"Matches size {size_label}", f"Fits budget (₹{r.get('price_inr')})"],
                     "cons": ["Limited stock"],
-                    # Dynamically references product title and avoided preference
-                    "why_recommended": f"The {r.get('title')} is recommended because it avoids {avoided_str} while meeting your {size_label} requirement."
+                    "why_recommended": f"The {r.get('title')} is recommended because it matches your preferences."
                 } for r in results
             ],
             "shortlist": [
                 {"product_id": r.get("product_id"), "reason": "Best value match"} for r in results[:2]
             ],
-            "comparisons": {
-                "summary": "These curated options satisfy your style and budget constraints.",
-                "tradeoffs": ["Price vs. premium material availability"]
-            },
-            "next_actions": [{"action": "ASK_SIZE_CONFIRMATION", "payload": {}}]
+            "message_count": len(ShoppingAgent._conversations.get(self.session_id, []))
         }
