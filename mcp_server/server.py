@@ -1,11 +1,12 @@
 import sys
 import json
 import os
-import traceback
+import asyncio
+from typing import Optional
 from mcp.server.fastmcp import FastMCP
 
 # Initialize FastMCP
-mcp = FastMCP("ShoppingTools")
+mcp = FastMCP("Shopping Assistant")
 
 # Absolute path calculation to ensure data files are always found regardless of execution context
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -30,20 +31,19 @@ def _safe_save(filename, data):
         json.dump(data, f, indent=4)
 
 @mcp.tool()
-def search_products(query: str, budget_max: int = 10000, avoid_keywords: any = None, category: str = None, size: str = None):
+def search_products(query: str, budget_max: int = 10000, avoid_keywords: any = None, category: Optional[str] = None, size: Optional[str] = None):
     """
-    Intelligent product search that checks ALL catalog fields.
-    
+    Searches the product catalog with strict filters.
     Args:
-        query: Search query (e.g., "white sneakers size 9")
-        budget_max: Maximum budget in INR
-        avoid_keywords: Keywords to exclude (checks title, style_keywords, material, etc.)
-        category: Category filter (footwear, apparel, accessories, toys, electronics, etc.)
-        size: Size filter (e.g., "9", "M", "L", "XL")
+        query: Search keywords
+        budget_max: Maximum price (INR). If not provided, defaults to 10000.
+        avoid_keywords: Keywords to exclude
+        category: Category filter (footwear, apparel, accessories)
+        size: Size filter (e.g., "9", "M", "L")
     """
     products = _safe_load("catalog.json")
     
-    # 1. STANDARDIZE EXCLUSION LIST
+    # Standardize exclusion list
     if isinstance(avoid_keywords, str):
         avoid_list = avoid_keywords.lower().split()
     elif isinstance(avoid_keywords, list):
@@ -51,113 +51,114 @@ def search_products(query: str, budget_max: int = 10000, avoid_keywords: any = N
     else:
         avoid_list = []
 
-    # Filter out overly generic words
-    generic_words = ["soles", "shoes", "style", "designs", "design", "product", "products"]
-    avoid_list = [w for w in avoid_list if w not in generic_words]
-    
-    # Debug logging
-    print(f"[SEARCH] Query: {query}, Category: {category}, Size: {size}, Avoid: {avoid_list}, Budget: {budget_max}", file=sys.stderr)
-    
-    query_words = query.lower().split()
-    results = []
-
-    # Category synonym mapping (generalized)
-    category_synonyms = {
+    # Category synonym mapping - maps query terms to standard categories
+    CATEGORY_MAP = {
+        # Footwear
         "sneakers": "footwear", "sneaker": "footwear", "shoes": "footwear",
-        "shoe": "footwear", "runners": "footwear", "running": "footwear",
-        "boots": "footwear", "sandals": "footwear", "heels": "footwear",
+        "shoe": "footwear", "boots": "footwear", "sandals": "footwear",
+        "loafers": "footwear", "footwear": "footwear",
+        # Apparel
         "shirts": "apparel", "shirt": "apparel", "t-shirts": "apparel",
         "t-shirt": "apparel", "tee": "apparel", "tees": "apparel",
-        "tops": "apparel", "pants": "apparel", "jeans": "apparel",
-        "clothing": "apparel", "clothes": "apparel", "dresses": "apparel",
-        "belts": "accessories", "sunglasses": "accessories", "bags": "accessories",
-        "watches": "accessories", "jewelry": "accessories", "caps": "accessories",
-        "games": "toys", "gadgets": "electronics", "groceries": "food",
-        "snacks": "food", "phones": "electronics"
+        "pants": "apparel", "jeans": "apparel", "clothes": "apparel",
+        "clothing": "apparel", "apparel": "apparel",
+        # Accessories
+        "sunglasses": "accessories", "belts": "accessories", "bags": "accessories",
+        "watches": "accessories", "accessories": "accessories"
     }
+    
+    # Normalize category to standard form
+    normalized_category = None
+    if category:
+        cat_lower = category.lower().strip()
+        normalized_category = CATEGORY_MAP.get(cat_lower, cat_lower)
+    
+    # Debug
+    print(f"[SEARCH] Query: {query}, Category: {category} -> {normalized_category}, Size: {size}, Budget: {budget_max}, Avoid: {avoid_list}", file=sys.stderr)
+    
+    query_words = [w.lower() for w in query.split()]
+    results = []
 
     for p in products:
-        # Extract ALL searchable fields from catalog
         title = p.get('title', "").lower()
         keywords = [k.lower() for k in p.get('style_keywords', [])]
         price = p.get('price_inr', 0)
+        
         product_category = p.get('category', "").lower()
         product_sub_category = p.get('sub_category', "").lower()
         product_size = str(p.get('size', "")).lower()
         product_material = p.get('material', "").lower()
         product_brand = p.get('brand', "").lower()
         
-        # Combine all searchable text for the product
-        all_searchable_text = f"{title} {product_sub_category} {product_material} {product_brand} {' '.join(keywords)}"
+        # 1. STRICT CATEGORY FILTER - If category specified, product MUST match
+        if normalized_category and product_category != normalized_category:
+            continue  # Skip products not in the requested category
         
-        # 2. CATEGORY FILTER
-        if category:
-            category_lower = category.lower().strip()
-            normalized_category = category_synonyms.get(category_lower, category_lower)
-            if product_category != normalized_category:
-                continue
-        
-        # 3. SIZE FILTER (if specified)
+        # 2. SIZE FILTER
         if size:
-            size_lower = size.lower().strip()
-            if product_size != size_lower:
-                # Also check if size appears in title or keywords
-                if size_lower not in title and size_lower not in all_searchable_text:
+            # Handle multiple sizes (e.g. "8 and 9", "8, 9", "8 or 9")
+            import re
+            requested_sizes = [s.strip().lower() for s in re.split(r'[,|/]+|\s+and\s+|\s+or\s+', str(size)) if s.strip()]
+            
+            if requested_sizes:
+                # If product size matches ANY of the requested sizes
+                if product_size not in requested_sizes:
                     continue
         
-        # 4. EXCLUSION CHECK - Check ALL fields
-        is_excluded = False
-        for word in avoid_list:
-            if word in all_searchable_text:
-                is_excluded = True
-                print(f"[SEARCH] Excluded: {p.get('title')} (matched avoid word: {word})", file=sys.stderr)
-                break
-                
+        # 3. EXCLUSION CHECK
+        all_text = f"{title} {product_sub_category} {product_material} {' '.join(keywords)}"
+        is_excluded = any(word in all_text for word in avoid_list)
         if is_excluded:
             continue
-
-        # 5. POSITIVE MATCHING - Search across ALL fields
-        match_score = 0
-        for word in query_words:
-            # Skip common words
-            if word in ["i", "want", "need", "looking", "for", "a", "an", "the", "some", "please", "show", "me"]:
-                continue
             
-            # Check title (highest weight)
+        # 4. STRICT COLOR FILTER (Heuristic)
+        # If query contains a common color, that color MUST appear in product text
+        COMMON_COLORS = {"white", "black", "red", "blue", "green", "yellow", "pink", "purple", "brown", "grey", "gray", "beige", "gold", "silver"}
+        query_colors = [w for w in query_words if w in COMMON_COLORS]
+        
+        if query_colors:
+            # Check if ANY of the asked colors are in the product
+            # (Relaxed: matches "white sneakers" to "white" but not "red")
+            has_color = any(c in all_text for c in query_colors)
+            if not has_color:
+                continue
+
+        # 4. CALCULATE MATCH SCORE
+        match_score = 0
+        
+        # Base score if category matches (so all products in category show up)
+        if normalized_category and product_category == normalized_category:
+            match_score += 10
+        
+        # Bonus for query word matches
+        for word in query_words:
+            if word in ["i", "want", "need", "looking", "for", "a", "an", "the", "some", "show", "me", "of", "size", "with"]:
+                continue
             if word in title:
                 match_score += 3
-            # Check style keywords
-            for kw in keywords:
-                if word in kw or kw in word:
-                    match_score += 2
-            # Check sub_category
             if word in product_sub_category:
                 match_score += 2
-            # Check material
-            if word in product_material:
-                match_score += 1
-            # Check brand
-            if word in product_brand:
-                match_score += 1
+            for kw in keywords:
+                if word in kw:
+                    match_score += 1
         
-        # 6. BUDGET FILTER
-        if match_score > 0 and price <= int(budget_max):
-            p['_match_score'] = match_score  # Add score for sorting
-            results.append(p)
+        # 5. BUDGET FILTER & ADD TO RESULTS
+        if match_score > 0 and price <= budget_max:
+            results.append({**p, '_score': match_score})
     
-    # Sort by match score (descending), then by price (ascending)
-    sorted_results = sorted(results, key=lambda x: (-x.get('_match_score', 0), x.get('price_inr', 0)))
+    # Sort by score (desc), then price (asc)
+    results.sort(key=lambda x: (-x.get('_score', 0), x.get('price_inr', 0)))
     
-    # Remove internal score before returning
-    for r in sorted_results:
-        r.pop('_match_score', None)
+    # Remove internal score
+    for r in results:
+        r.pop('_score', None)
     
-    print(f"[SEARCH] Found {len(sorted_results)} products", file=sys.stderr)
+    print(f"[SEARCH] Found {len(results)} products", file=sys.stderr)
     
-    if not sorted_results:
-        return {"message": "No products found matching your preferences.", "products": []}
+    if not results:
+        return {"message": "No products found.", "products": []}
     
-    return {"products": sorted_results}
+    return {"products": results}
 
 @mcp.tool()
 def get_product_details(product_id: str):

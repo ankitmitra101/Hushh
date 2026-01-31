@@ -11,113 +11,64 @@ Your personal AI shopping assistant that remembers your preferences and helps yo
 - 💬 **Natural Chat** - Just describe what you want in plain words
 - 🔍 **Intelligent Search** - Filters by size, material, brand, style
 
-## Quick Start (Download → Deploy in 10 minutes)
+## Quick Start (Plug & Play)
 
-### Prerequisites
+The easiest way to run **Hushh** locally, even from a zip file.
 
-1. **Groq API Key** (Free) - Get one at [console.groq.com](https://console.groq.com)
-2. **Render Account** (Free) - Sign up at [render.com](https://render.com)
-3. **GitHub Account** - To push your code
+### Option 1: One-Click Script (Recommended)
 
-### Step 1: Push to Your GitHub
+**Windows:**
+1. Double-click `run_locally.bat` inside the folder.
+2. It will automatically:
+   - Create a virtual environment & install Python dependencies.
+   - Install React frontend dependencies.
+   - Start both servers and open your browser to the app.
 
-```bash
-# Unzip the downloaded file
-cd Hushh
+**Mac / Linux:**
+1. Open terminal in the folder.
+2. Run: `bash run_locally.sh`
 
-# Initialize new repo (if not already a git repo)
-git init
-git add .
-git commit -m "Initial commit"
-
-# Create a new repo on GitHub, then:
-git remote add origin https://github.com/YOUR_USERNAME/Hushh.git
-git push -u origin main
-```
-
-### Step 2: Deploy Backend on Render
-
-1. Go to [render.com](https://render.com) → **New** → **Web Service**
-2. Connect your GitHub repo
-3. Configure:
-   - **Name**: `hushh-backend`
-   - **Runtime**: Python 3
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-4. Add Environment Variable:
-   - **Key**: `OPENAI_API_KEY`
-   - **Value**: Your Groq API key
-5. Click **Create Web Service**
-6. Wait for deployment → Note your backend URL (e.g., `https://hushh-backend-xyz.onrender.com`)
-
-### Step 3: Deploy Frontend on Render
-
-1. Go to [render.com](https://render.com) → **New** → **Static Site**
-2. Connect the same GitHub repo
-3. Configure:
-   - **Name**: `hushh-frontend`
-   - **Root Directory**: `hushh-react-frontend`
-   - **Build Command**: `npm install && npm run build`
-   - **Publish Directory**: `dist`
-4. Add Environment Variable:
-   - **Key**: `VITE_BACKEND_URL`
-   - **Value**: Your backend URL from Step 2
-5. Click **Create Static Site**
-
-### Done! 🎉
-
-Your app is live at your Render frontend URL!
+> **Note:** On first run, it will create a `.env` file. You may need to open it and add your `OPENAI_API_KEY` (Groq API Key) if the app doesn't respond.
 
 ---
 
-## Local Development
+### Option 2: Manual Setup
 
-### Backend
-
+#### Backend
 ```bash
-cd Hushh
-
-# Create .env file
-cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY (Groq key)
-
-# Install dependencies
+# Setup Env
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+cp .env.example .env       # Edit .env with your API key
 
 # Run
 uvicorn main:app --reload
 ```
 
-### Frontend
-
+#### Frontend
 ```bash
 cd hushh-react-frontend
-
-# Install dependencies
 npm install
-
-# Run
+cp .env.example .env
 npm run dev
 ```
 
 ---
 
-## Environment Variables
+## Deployment (Render/Vercel)
 
-### Backend (.env)
+This project is configured for easy deployment.
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `OPENAI_API_KEY` | ✅ Yes | Your Groq API key (used via OpenAI client) |
-| `PORT` | No | Server port (default: 8000) |
+**Backend (Render/Railway/Heroku):**
+- **Build Command:** `pip install -r requirements.txt`
+- **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- **Env Vars:** `OPENAI_API_KEY` (Required)
 
-### Frontend
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `VITE_BACKEND_URL` | ✅ Yes | Your backend URL (e.g., `https://hushh-backend.onrender.com`) |
-
----
+**Frontend (Vercel/Netlify):**
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Env Vars:** `VITE_BACKEND_URL` (Set to your deployed backend URL)
 
 ## Project Structure
 

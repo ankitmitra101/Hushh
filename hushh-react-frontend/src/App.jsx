@@ -18,17 +18,38 @@ const generateSessionId = () => `session_${Date.now()}_${Math.random().toString(
 function AppContent() {
   const [currentPage, setCurrentPage] = useState('landing')
   const [selectedCategory, setSelectedCategory] = useState(null)
-  const [sessionId, setSessionId] = useState(generateSessionId())
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [avoidKeywords, setAvoidKeywords] = useState([])
   const [sessionData, setSessionData] = useState({})
   const [backendStatus, setBackendStatus] = useState('checking')
+  const [userId, setUserId] = useState('')
+  const [sessionId, setSessionId] = useState('')
+  const [lastApiResponse, setLastApiResponse] = useState(null)
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
-    checkBackend()
+    const initializeSession = async () => {
+      // DEBUG: Force fresh user ID every time to avoid stale memory
+      const newUserId = `debug_user_${Date.now()}`
+      localStorage.setItem('hushh_user_id', newUserId)
+      setUserId(newUserId)
+
+      const newSessionId = `session_${Date.now()}`
+      setSessionId(newSessionId)
+
+      console.log('Initialized Session:', { userId: newUserId, newSessionId })
+
+      // Warm up backend
+      try {
+        await fetch(`${import.meta.env.VITE_BACKEND_URL}/health`)
+      } catch (e) {
+        console.log('Backend waking up...')
+      }
+      checkBackend() // Also check backend status
+    }
+    initializeSession()
   }, [])
 
   useEffect(() => {
@@ -89,17 +110,21 @@ function AppContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: 'ankit_01',
+          user_id: `guest_${sessionId}`, // Use unique ID to prevent old memory persistence
           message: userMessage,
           session_id: sessionId  // Send session ID for conversation tracking
         })
       })
 
       const data = await response.json()
+      setLastApiResponse(data)
+      console.log('=== API RESPONSE ===', JSON.stringify(data, null, 2))
 
       const understood = data.understood_request || {}
       const constraints = understood.constraints || {}
       const products = data.results || []
+      console.log('Parsed Products:', products.length)
+
       const questions = data.clarifying_questions || []
 
       setSessionData({
@@ -118,10 +143,9 @@ function AppContent() {
         responseContent = `Something went wrong: ${data.error}`
       } else if (products.length > 0) {
         responseContent = `Found ${products.length} matches for you.`
-      } else if (questions.length > 0) {
-        responseContent = "I'd love to help! Could you tell me a bit more?"
       } else {
-        responseContent = 'No products found. Try adjusting your search.'
+        // Always show this - don't ask questions
+        responseContent = 'No products found matching your search. Try a different query.'
       }
 
       setMessages(prev => [...prev, {

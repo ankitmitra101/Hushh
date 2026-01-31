@@ -8,6 +8,9 @@ from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 load_dotenv()
+print(f"DEBUG: OPENAI_API_KEY loaded: {bool(os.getenv('OPENAI_API_KEY'))}")
+if os.getenv('OPENAI_API_KEY'):
+    print(f"DEBUG: Key starts with: {os.getenv('OPENAI_API_KEY')[:10]}...")
 
 from agent_core.logic import ShoppingAgent
 from agent_core.fashion_logic import FashionStylistAgent

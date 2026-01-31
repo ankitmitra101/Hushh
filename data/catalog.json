@@ -418,5 +418,133 @@
     "sub_category": "eyewear",
     "size": "M",
     "material": "Metal"
+  },
+  {
+    "product_id": "shoe-001",
+    "title": "Classic White Leather Sneakers",
+    "price_inr": 3499,
+    "brand": "UrbanStep",
+    "style_keywords": [
+      "minimal",
+      "white",
+      "casual",
+      "everyday"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "9",
+    "material": "Leather"
+  },
+  {
+    "product_id": "shoe-002",
+    "title": "Black Running Shoes",
+    "price_inr": 2999,
+    "brand": "ActiveCore",
+    "style_keywords": [
+      "sporty",
+      "black",
+      "running",
+      "breathable"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "10",
+    "material": "Mesh"
+  },
+  {
+    "product_id": "shoe-003",
+    "title": "Navy Blue Canvas Sneakers",
+    "price_inr": 1899,
+    "brand": "Coastline",
+    "style_keywords": [
+      "casual",
+      "navy",
+      "summer",
+      "light"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "9",
+    "material": "Canvas"
+  },
+  {
+    "product_id": "shoe-004",
+    "title": "Retro Grey Suede Sneakers",
+    "price_inr": 4299,
+    "brand": "Heritage",
+    "style_keywords": [
+      "retro",
+      "grey",
+      "suede",
+      "classic"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "8",
+    "material": "Suede"
+  },
+  {
+    "product_id": "shoe-005",
+    "title": "Brown Leather Boots",
+    "price_inr": 5499,
+    "brand": "Rugged",
+    "style_keywords": [
+      "rugged",
+      "brown",
+      "leather",
+      "outdoor"
+    ],
+    "category": "footwear",
+    "sub_category": "boots",
+    "size": "10",
+    "material": "Leather"
+  },
+  {
+    "product_id": "shoe-006",
+    "title": "Chunky Platform Sneakers",
+    "price_inr": 3799,
+    "brand": "StreetVibe",
+    "style_keywords": [
+      "chunky",
+      "platform",
+      "trendy",
+      "white"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "7",
+    "material": "Synthetic"
+  },
+  {
+    "product_id": "shoe-007",
+    "title": "Minimalist Black Loafers",
+    "price_inr": 2599,
+    "brand": "Classics",
+    "style_keywords": [
+      "minimal",
+      "black",
+      "smart-casual",
+      "sleek"
+    ],
+    "category": "footwear",
+    "sub_category": "loafers",
+    "size": "9",
+    "material": "Leather"
+  },
+  {
+    "product_id": "shoe-008",
+    "title": "Red High-Top Sneakers",
+    "price_inr": 3299,
+    "brand": "StreetVibe",
+    "style_keywords": [
+      "bold",
+      "red",
+      "high-top",
+      "street"
+    ],
+    "category": "footwear",
+    "sub_category": "sneakers",
+    "size": "8",
+    "material": "Canvas"
   }
 ]

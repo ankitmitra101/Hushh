@@ -1,0 +1,1 @@
+['search_products', 'get_product_details', 'save_shortlist', 'get_shortlist', 'write_memory', 'read_memory']
